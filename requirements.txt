@@ -1,2 +1,3 @@
 vnstock
 scipy
+apache-airflow==3.0.0

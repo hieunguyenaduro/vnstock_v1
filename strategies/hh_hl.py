@@ -1,60 +1,76 @@
+import time
+import json
+
 from vnstock import *
 from scipy.signal import find_peaks
-import matplotlib.pyplot as plt
 from vnstock import register_user
-import time
 
-register_user(api_key='vnstock_366108191e0a3190950b24d2a04fe157')
+from utiils.fetch_data import FetchData
+from config import Config
 
-# Hoặc VCI - Dữ liệu đầy đủ hơn nhưng không chạy được trên Colab
-quote = Quote(symbol='vds', source='VCI')
-start_time = time.perf_counter()
-# Hoặc lấy theo khoảng thời gian cụ thể
-df = quote.history(start='2026-05-5', end='2026-06-19', interval="1d")
 
-prices = df['close'].values
-dates = df['time'].values
+class HhHl:
 
-# 2. Tìm tất cả các Đỉnh và Đáy cục bộ
-# Điều chỉnh distance và prominence tùy theo độ nhiễu của mã chứng khoán
-peaks, _ = find_peaks(prices, distance=5, prominence=1)
-troughs, _ = find_peaks(-prices, distance=5, prominence=1)
+    def __init__(self):
+        self.fetcher = FetchData()
 
-# 3. Thuật toán xác định Điểm Đảo Chiều (HH và HL)
-trend_signals = []
+    @staticmethod
+    def create_json_file(data , filename):
+        if not filename.endswith('.json'):
+            filename = f"{filename}.json"
 
-for i in range(1, len(peaks)):
-    # Kiểm tra Đỉnh sau cao hơn Đỉnh trước (Higher High)
-    if prices[peaks[i]] > prices[peaks[i - 1]]:
-        # Kiểm tra Đáy gần nhất cũng phải cao hơn Đáy trước đó (Higher Low)
-        # Tìm các đáy nằm giữa hoặc ngay trước 2 đỉnh này
-        recent_troughs = [t for t in troughs if t < peaks[i]]
-        if len(recent_troughs) >= 2:
-            if prices[recent_troughs[-1]] > prices[recent_troughs[-2]]:
-                trend_signals.append(peaks[i])
+        with open(filename, "w") as json_file:
+            json.dump(data, json_file)
 
-# 4. Vẽ biểu đồ
-plt.figure(figsize=(14, 7))
-plt.plot(dates, prices, label='Giá vci', color='lightgray')
+    def main(self):
 
-# Vẽ tất cả đỉnh/đáy mờ
-plt.scatter(dates[peaks], prices[peaks], color='blue', alpha=0.3, label='Đỉnh cục bộ')
-plt.scatter(dates[troughs], prices[troughs], color='orange', alpha=0.3, label='Đáy cục bộ')
+        start_time = time.perf_counter()
 
-print (" prices preaks : " ,prices[peaks], " len : ", len(prices[peaks]))
-print (" prices troughs : " ,prices[troughs], " len : ", len(prices[troughs]))
+        list_ticker_uptrend = []
+        data=[]
+        for ticket in Config.ALL_TICKERS:
+            df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date='2026-05-5',
+                                                    end_date='2026-06-19')
+            prices = df['close'].values
 
-if len(prices[peaks])>=2 and len(prices[troughs]) >=2:
-    print(f"cổ phếu {quote.symbol} vào sóng uptrend ")
+            # 2. Tìm tất cả các Đỉnh và Đáy cục bộ
+            # Điều chỉnh distance và prominence tùy theo độ nhiễu của mã chứng khoán
+            peaks, _ = find_peaks(prices, distance=5, prominence=1)
+            troughs, _ = find_peaks(-prices, distance=5, prominence=1)
 
-# Đánh dấu điểm xác nhận xu hướng tăng (Đỉnh sau > Đỉnh trước & Đáy sau > Đáy trước)
-if trend_signals:
-    plt.scatter(dates[trend_signals], prices[trend_signals],
-                color='red', marker='*', s=200, label='Xác nhận Xu hướng Tăng (HH+HL)')
+            # 3. Thuật toán xác định Điểm Đảo Chiều (HH và HL)
+            trend_signals = []
 
-plt.title('Xác định Điểm Đảo Chiều Xu Hướng (Higher Highs & Higher Lows)')
-plt.legend()
-plt.show()
-end_time = time.perf_counter()
-execution_time = end_time - start_time
-print (f'"execution_time": {execution_time:.2f}')
+            for i in range(1, len(peaks)):
+                # Kiểm tra Đỉnh sau cao hơn Đỉnh trước (Higher High)
+                if prices[peaks[i]] > prices[peaks[i - 1]]:
+                    # Kiểm tra Đáy gần nhất cũng phải cao hơn Đáy trước đó (Higher Low)
+                    # Tìm các đáy nằm giữa hoặc ngay trước 2 đỉnh này
+                    recent_troughs = [t for t in troughs if t < peaks[i]]
+                    if len(recent_troughs) >= 2:
+                        if prices[recent_troughs[-1]] > prices[recent_troughs[-2]]:
+                            trend_signals.append(peaks[i])
+
+            print(" prices peaks : ", prices[peaks], " len : ", len(prices[peaks]))
+            print(" prices troughs : ", prices[troughs], " len : ", len(prices[troughs]))
+
+            if len(prices[peaks]) >= 2 and len(prices[troughs]) >= 2:
+                print(f"cổ phiếu {ticket} vào sóng uptrend ")
+                list_ticker_uptrend.append(ticket)
+
+        data.append({"hh_hl":list_ticker_uptrend})
+        self.create_json_file(data, "hh_hl")
+
+        end_time = time.perf_counter()
+        execution_time = end_time - start_time
+        print(f'"execution_time": {execution_time:.2f}')
+
+
+if __name__ == '__main__':
+    HhHl().main()
+
+
+def python_operator_run(**kwargs):
+    global airflow_context
+    airflow_context = kwargs
+    HhHl().main()
