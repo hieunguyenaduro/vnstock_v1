@@ -1,6 +1,5 @@
 import gradio as gr
 import json, requests
-from datetime import datetime
 
 AIRFLOW_URL = "http://localhost:8080/api/v1"
 AIRFLOW_AUTH = ("airflow", "airflow")

@@ -1,10 +1,9 @@
 from datetime import datetime, timedelta
 
-# The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
 
 # Operators; we need this to operate!
-from airflow.operators.python_operator import PythonOperator
+from airflow.providers.standard.operators.python import PythonOperator
 from strategies import hh_hl
 
 with DAG(
@@ -23,7 +22,6 @@ with DAG(
         schedule=None,
         start_date=datetime(2026, 1, 1),
         catchup=False,
-        tags=["example"],
 ) as dag:
     # t1, t2 are examples of tasks created by instantiating operators
     t1 = PythonOperator(
@@ -31,3 +29,8 @@ with DAG(
         python_callable=hh_hl.python_operator_run,
         dag=dag)
     t1
+
+if __name__ == "__main__":
+    from datetime import datetime, timezone
+
+    dag.test(logical_date=datetime(2026, 5, 11, tzinfo=timezone.utc))
