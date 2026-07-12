@@ -11,9 +11,9 @@ class Config:
     WATCHLIST = {
         "bat dong san": ["vic", "vhm", "agg", "cii", "ceo", "nlg", "pdr", "khg", "ntl", "tch", "dig", "dxg", "dxs"],
         "chung khoan": ["ssi", "apg", "dsc", "dse", "vck", "vix", "mbs", "vci", "bms", "cts", "fts", "vds", "shs",
-                        "vnd", "bsi", "tcx", "vpx", "hcm"],
+                        "vnd", "bsi", "tcx", "vpx", "hcm", "bvs"],
         "ngan hang": ["bvb", "tpb", "msb", "nab", "tcb", "vib", "shb", "vab", "bab", "nvb", "eib", "hdb", "mbb", "ctg",
-                      "acb", "vcb", "vpb", "stb", "evf", "ocb", "bid", "lpb", "bvs"],
+                      "acb", "vcb", "vpb", "stb", "evf", "ocb", "bid", "lpb"],
         "thep": ["vgs", "nkg", "hsg", "hpg"],  # Removed 'bvh' (Insurance) from here
         "bao hiem": ["bvh"],  # Created a proper home for Bao Viet
         "det may": ["msh", "tng"],

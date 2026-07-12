@@ -36,31 +36,40 @@ class HhHl:
                                                     end_date='2026-06-26')
             prices = df['close'].values
 
-            # 2. Find all local peaks and troughs
-            # Adjust distance and prominence depending on how noisy the stock is
+            # 2. Tìm Đỉnh (Peaks) và Đáy (Troughs)
+            # distance=5: Khoảng cách tối thiểu giữa 2 đỉnh/đáy là 5 phiên
+            # prominence=1: Độ cao chênh lệch tối thiểu để coi là 1 đỉnh/đáy rõ nét
             peaks, _ = find_peaks(prices, distance=5, prominence=1)
             troughs, _ = find_peaks(-prices, distance=5, prominence=1)
 
-            # 3. Algorithm to detect reversal points (HH and HL)
-            trend_signals = []
+            # 3. Thuật toán xác định Điểm Đảo Chiều Giảm (LH + LL)
+            reversal_signals = []
 
-            for i in range(1, len(peaks)):
-                # Check that the next peak is higher than the previous one (Higher High)
-                if prices[peaks[i]] > prices[peaks[i - 1]]:
-                    # Check that the most recent trough is also higher than the one before it (Higher Low)
-                    # Find the troughs that fall between or right before these two peaks
-                    recent_troughs = [t for t in troughs if t < peaks[i]]
-                    if len(recent_troughs) >= 2:
-                        if prices[recent_troughs[-1]] > prices[recent_troughs[-2]]:
-                            trend_signals.append(peaks[i])
+            # Chúng ta duyệt qua các đáy để tìm Lower Low (LL)
+            for i in range(1, len(troughs)):
+                current_trough_idx = troughs[i]
+                prev_trough_idx = troughs[i - 1]
+
+                # ĐIỀU KIỆN 1: Đáy sau thấp hơn đáy trước (Lower Low)
+                if prices[current_trough_idx] < prices[prev_trough_idx]:
+
+                    # ĐIỀU KIỆN 2: Tìm các đỉnh nằm trước đáy hiện tại để kiểm tra Lower High (LH)
+                    recent_peaks = [p for p in peaks if p < current_trough_idx]
+
+                    if len(recent_peaks) >= 2:
+                        # Nếu đỉnh gần nhất thấp hơn đỉnh trước đó
+                        if prices[recent_peaks[-1]] < prices[recent_peaks[-2]]:
+                            # Đây là điểm xác nhận đảo chiều xu hướng sang giảm
+                            reversal_signals.append(current_trough_idx)
 
             print(" prices peaks : ", prices[peaks], " len : ", len(prices[peaks]))
             print(" prices troughs : ", prices[troughs], " len : ", len(prices[troughs]))
 
             # Flag confirmed uptrend points (next peak > previous peak & next trough > previous trough)
-            if trend_signals:
-                print(f"stock {ticket} entering an uptrend wave ")
-                list_ticker_uptrend.append(ticket)
+            # Đánh dấu điểm ĐẢO CHIỀU (Xác nhận cấu trúc LH + LL)
+            if reversal_signals:
+                plt.scatter(dates[reversal_signals], prices[reversal_signals],
+                            color='darkred', marker='X', s=250, label='ĐIỂM ĐẢO CHIỀU GIẢM (LH + LL)')
 
             # Flag stocks where the next trough is higher than the previous one; peaks don't matter here
             elif len(prices[troughs]) >= 2:
