@@ -13,7 +13,7 @@ class Config:
         "chung khoan": ["ssi", "apg", "dsc", "dse", "vck", "vix", "mbs", "vci", "bms", "cts", "fts", "vds", "shs",
                         "vnd", "bsi", "tcx", "vpx", "hcm"],
         "ngan hang": ["bvb", "tpb", "msb", "nab", "tcb", "vib", "shb", "vab", "bab", "nvb", "eib", "hdb", "mbb", "ctg",
-                      "acb", "vcb", "vpb", "stb", "evf", "ocb", "bid", "lpb"],
+                      "acb", "vcb", "vpb", "stb", "evf", "ocb", "bid", "lpb", "bvs"],
         "thep": ["vgs", "nkg", "hsg", "hpg"],  # Removed 'bvh' (Insurance) from here
         "bao hiem": ["bvh"],  # Created a proper home for Bao Viet
         "det may": ["msh", "tng"],

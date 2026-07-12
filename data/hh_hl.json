@@ -1,10 +1,25 @@
 [
     {
         "hh_hl": [
+            "dse",
+            "vck",
+            "vix",
+            "vci",
+            "cts",
+            "shs",
             "vnd",
             "bsi",
             "tcx",
             "hcm"
+        ]
+    },
+    {
+        "2_bottom": [
+            "ssi",
+            "mbs",
+            "bms",
+            "fts",
+            "vpx"
         ]
     }
 ]

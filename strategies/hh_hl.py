@@ -29,6 +29,7 @@ class HhHl:
         start_time = time.perf_counter()
 
         list_ticker_uptrend = []
+        list_ticker_2_bottom = []
         data = []
         for ticket in Config.ALL_TICKERS:
             df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date='2026-03-5',
@@ -62,18 +63,22 @@ class HhHl:
                 list_ticker_uptrend.append(ticket)
 
             # đánh dấu những cổ phiếu nào co đáy sau cao hơn đáy trước, đỉnh không quan trọng
-            if len(prices[troughs]) >= 2:
+            elif len(prices[troughs]) >= 2:
                 count = 0
                 for i in range(1, len(troughs)):
                     if prices[troughs[i]] >= prices[troughs[i - 1]]:
                         count += 1
                 if count > 0:
                     print(f"cổ phiếu {ticket} vào sóng uptrend ")
-                    list_ticker_uptrend.append(ticket)
+                    list_ticker_2_bottom.append(ticket)
 
-        list_ticker_uptrend = set(list_ticker_uptrend)
-        data.append({"hh_hl": list_ticker_uptrend})
-        self.create_json_file(data, "hh_hl")
+        if len(list_ticker_uptrend)>1:
+            data.append({"hh_hl": list_ticker_uptrend})
+        if len(list_ticker_2_bottom)>1:
+            data.append({"2_bottom": list_ticker_2_bottom})
+
+        if len(data)>1:
+            self.create_json_file(data, "hh_hl")
 
         end_time = time.perf_counter()
         execution_time = end_time - start_time
