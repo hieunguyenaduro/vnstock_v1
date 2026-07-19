@@ -1,6 +1,5 @@
 import time
 from pathlib import Path
-import plotly.graph_objects as go
 
 from utiils.fetch_data import FetchData
 from utiils.common import Common
@@ -66,20 +65,6 @@ class WaveUp:
 
     def plot_growth_waves(self, df, threshold=20):
         pivots = self.identify_zigzag_waves(df, threshold)
-
-        pivot_indices = [p[0] for p in pivots]
-        pivot_prices = [p[1] for p in pivots]
-
-        fig = go.Figure()
-
-        # 1. Vẽ đường giá chính (Candlestick hoặc Line)
-        # fig.add_trace(go.Scatter(x=df.index, y=df['Close'], name='Giá Đóng Cửa', line=dict(color='lightgrey', width=1)))
-        fig.add_trace(go.Scatter(x=df.index, y=df['close'], name='Giá Đóng Cửa', line=dict(color='lightgrey', width=1)))
-
-        # 2. Vẽ đường ZigZag nối các Đỉnh/Đáy
-        fig.add_trace(go.Scatter(x=df.index[pivot_indices], y=pivot_prices,
-                                 mode='lines+markers', name=f'Sóng ZigZag >{threshold}%',
-                                 line=dict(color='blue', width=2)))
 
         # 3. Tính toán và đánh dấu các đoạn sóng tăng
         percentage_wave = None
