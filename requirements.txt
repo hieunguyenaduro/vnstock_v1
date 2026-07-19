@@ -4,3 +4,4 @@ apache-airflow==3.0.0
 gradio
 requests
 pandas
+plotly

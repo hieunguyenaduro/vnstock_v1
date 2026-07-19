@@ -1,9 +1,9 @@
 import time
-import json
 from pathlib import Path
 
 from scipy.signal import find_peaks
 from utiils.fetch_data import FetchData
+from utiils.common import Common
 from config import Config
 
 etl_path = str(Path(__file__).resolve().parents[1])
@@ -13,16 +13,6 @@ class HhHl:
 
     def __init__(self):
         self.fetcher = FetchData()
-
-    @staticmethod
-    def create_json_file(data, filename):
-        if not filename.endswith('.json'):
-            filename = Path(f"{etl_path}/data/{filename}.json")
-
-        filename.parent.mkdir(parents=True, exist_ok=True)
-
-        with open(filename, "w", encoding="utf-8") as json_file:
-            json.dump(data, json_file, ensure_ascii=False, indent=4)
 
     def main(self):
 
@@ -72,13 +62,13 @@ class HhHl:
                     print(f"stock {ticket} entering an uptrend wave ")
                     list_ticker_2_bottom.append(ticket)
 
-        if len(list_ticker_uptrend)>1:
+        if len(list_ticker_uptrend) > 1:
             data.append({"hh_hl": list_ticker_uptrend})
-        if len(list_ticker_2_bottom)>1:
+        if len(list_ticker_2_bottom) > 1:
             data.append({"2_bottom": list_ticker_2_bottom})
 
-        if len(data)>1:
-            self.create_json_file(data, "hh_hl")
+        if len(data) > 1:
+            Common.create_json_file(data, etl_path, "hh_hl")
 
         end_time = time.perf_counter()
         execution_time = end_time - start_time

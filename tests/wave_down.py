@@ -7,8 +7,8 @@ from vnstock import *
 register_user(api_key='vnstock_366108191e0a3190950b24d2a04fe157')
 
 # Lấy dữ liệu
-quote = Quote(symbol='hhs', source='VCI')
-df = quote.history(start='2025-06-01', end='2026-03-14', interval="1D")
+quote = Quote(symbol='ssi', source='VCI')
+df = quote.history(start='2026-03-01', end='2026-05-14', interval="1D")
 
 def identify_zigzag_waves(df, threshold=10):
     """

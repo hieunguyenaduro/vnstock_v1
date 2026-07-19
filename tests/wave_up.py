@@ -1,10 +1,5 @@
-import pandas as pd
-import numpy as np
 import plotly.graph_objects as go
-
 from vnstock import *
-from scipy.signal import find_peaks
-import matplotlib.pyplot as plt
 from vnstock import register_user
 
 register_user(api_key='vnstock_366108191e0a3190950b24d2a04fe157')
