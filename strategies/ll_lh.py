@@ -22,7 +22,7 @@ class LlLh:
         list_ticker_2_peak = []
         data = []
         for ticket in Config.ALL_TICKERS:
-            df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date='2026-03-5',
+            df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date='2026-03-01',
                                                     end_date='2026-06-26')
             prices = df['close'].values
 
@@ -58,7 +58,7 @@ class LlLh:
             # Flag confirmed uptrend points (next peak > previous peak & next trough > previous trough)
             # Đánh dấu điểm ĐẢO CHIỀU (Xác nhận cấu trúc LH + LL)
             if reversal_signals:
-                print(f"stock {ticket} entering an uptrend wave ")
+                print(f"stock {ticket} entering an downtrend wave ")
                 list_ticker_downtrend.append(ticket)
 
             # Flag stocks where the next trough is higher than the previous one; peaks don't matter here
@@ -68,16 +68,16 @@ class LlLh:
                     if prices[peaks[i]] <= prices[peaks[i - 1]]:
                         count += 1
                 if count > 0:
-                    print(f"stock {ticket} entering an uptrend wave ")
+                    print(f"stock {ticket} entering an downtrend wave ")
                     list_ticker_2_peak.append(ticket)
 
-        if len(list_ticker_downtrend)>1:
+        if len(list_ticker_downtrend)>0:
             data.append({"hh_hl": list_ticker_downtrend})
-        if len(list_ticker_2_peak)>1:
-            data.append({"2_bottom": list_ticker_2_peak})
+        if len(list_ticker_2_peak)>0:
+            data.append({"2_peaks": list_ticker_2_peak})
 
-        if len(data)>1:
-            Common.create_json_file(data, "ll_hh")
+        if len(data)>0:
+            Common.create_json_file(data, etl_path,"ll_hh")
 
         end_time = time.perf_counter()
         execution_time = end_time - start_time

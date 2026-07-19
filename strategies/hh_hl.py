@@ -62,12 +62,12 @@ class HhHl:
                     print(f"stock {ticket} entering an uptrend wave ")
                     list_ticker_2_bottom.append(ticket)
 
-        if len(list_ticker_uptrend) > 1:
+        if len(list_ticker_uptrend) > 0:
             data.append({"hh_hl": list_ticker_uptrend})
-        if len(list_ticker_2_bottom) > 1:
+        if len(list_ticker_2_bottom) > 0:
             data.append({"2_bottom": list_ticker_2_bottom})
 
-        if len(data) > 1:
+        if len(data) > 0:
             Common.create_json_file(data, etl_path, "hh_hl")
 
         end_time = time.perf_counter()
