@@ -29,6 +29,13 @@ class Config:
     # Automatically flattens all tickers into a single list
     ALL_TICKERS = [t for tickers in WATCHLIST.values() for t in tickers]
 
+    US_TICKERS = [
+        "AAPL", "MSFT", "NVDA", "GOOGL", "META", "TSLA",
+        "AMZN", "ORCL", "SPXC", "AMD", "INTC", "CRM", "PLTR",
+        "SMCI", "SNPS", "CDNS"
+    ]
+
+
     # Analysis Settings
     RSI_OVERSOLD_THRESHOLD = 33
 
@@ -39,3 +46,4 @@ class Config:
     # API Configuration (Safe fallback method)
     # Corrected indentation, capitalization, and added environment variable support
     API_KEY = os.getenv('VNSTOCK_API_KEY', 'vnstock_366108191e0a3190950b24d2a04fe157')
+    API_KEY_twelvedata = os.getenv('twelvedata', '1652ed6172c64a948342413ca45a8ca3')

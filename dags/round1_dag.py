@@ -28,7 +28,6 @@ with DAG(
         task_id='HH_HL',
         python_callable=hh_hl.python_operator_run,
         dag=dag)
-    t1
 
 if __name__ == "__main__":
     from datetime import datetime, timezone
