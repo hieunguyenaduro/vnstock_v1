@@ -11,10 +11,10 @@ class FetchBinanceData:
             'enableRateLimit': True,  # Good practice to avoid hitting rate limits
         })
 
-    def get_binance_data(self, ex_token="BTC/USDT", timeframe="1d", period=14, limit=100) -> pd.DataFrame:
+    def get_binance_data(self, token="BTC/USDT", timeframe="1d", period=14, limit=100) -> pd.DataFrame:
         """Fetches OHLCV data from Binance and computes RSI."""
         # Fetch OHLCV data
-        ohlcv = self.exchange.fetch_ohlcv(ex_token, timeframe=timeframe, limit=limit)
+        ohlcv = self.exchange.fetch_ohlcv(token, timeframe=timeframe, limit=limit)
 
         # Convert to DataFrame
         df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
@@ -47,14 +47,14 @@ class FetchBinanceData:
 
 
 if __name__ == "__main__":
-    ex_token = "BTC/USDT"
+    token = "BTC/USDT"
     timeframe = "1d"
 
     fetcher = FetchBinanceData()
 
     # 1. Get RSI Data
-    data = fetcher.get_binance_data(ex_token=ex_token, timeframe=timeframe, period=14)
-    print(f"--- latest rsi {ex_token} (timeframe {timeframe}) ---")
+    data = fetcher.get_binance_data(token=token, timeframe=timeframe, period=14)
+    print(f"--- latest rsi {token} (timeframe {timeframe}) ---")
     print(data[['timestamp', 'close', 'RSI']].tail())
 
     # 2. Check for stock ticker

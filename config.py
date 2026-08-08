@@ -35,6 +35,11 @@ class Config:
         "SMCI", "SNPS", "CDNS"
     ]
 
+    TOKENS = [
+        # "BTC", "ETH", "LINK"
+        "OP/USDT"
+    ]
+
 
     # Analysis Settings
     RSI_OVERSOLD_THRESHOLD = 33
