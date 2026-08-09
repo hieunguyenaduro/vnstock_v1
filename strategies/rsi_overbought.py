@@ -9,7 +9,7 @@ from utiils.fetch_binance_data import FetchBinanceData
 etl_path = str(Path(__file__).resolve().parents[1])
 
 
-class RSIOverSold:
+class RSIOverBought:
 
     def __init__(self):
         self.fetcher_us_data = FetchUsStockData()
@@ -22,14 +22,14 @@ class RSIOverSold:
         us_ticket_on_binance = self.fetcher_binance_data.get_us_stock_tickers_on_crypto_exchange()
         for ticket in us_ticket_on_binance:
             latest_rsi = self.fetcher_us_data.get_us_stock_rsi(ticker=ticket)
-            if latest_rsi is not None and latest_rsi <= 33:
+            if latest_rsi is not None and latest_rsi <= 67:
                 list_ticker_rsi_oversold.append(latest_rsi)
 
         if len(list_ticker_rsi_oversold) > 0:
             data.append({"rsi_oversold_us_stock": list_ticker_rsi_oversold})
 
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "rsi_oversold_us_stock")
+            Common.create_json_file(data, etl_path, "rsi_overbought_us_stock")
 
     def binance_token(self):
         list_token_rsi_oversold = []
@@ -39,14 +39,14 @@ class RSIOverSold:
             df = self.fetcher_binance_data.get_binance_data(token=token)
             latest_rsi = df[['timestamp', 'close', 'RSI']].tail()
             latest_rsi = latest_rsi.iloc[4]["RSI"]
-            if latest_rsi is not None and latest_rsi <= 33:
+            if latest_rsi is not None and latest_rsi <= 67:
                 list_token_rsi_oversold.append(latest_rsi)
 
         if len(list_token_rsi_oversold) > 0:
             data.append({"rsi_oversold_binance_token": list_token_rsi_oversold})
 
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "rsi_oversold_binance_token")
+            Common.create_json_file(data, etl_path, "rsi_overbought_binance_token")
 
     def main(self):
         start_time = time.perf_counter()
@@ -60,8 +60,8 @@ class RSIOverSold:
 
 
 if __name__ == '__main__':
-    RSIOverSold().main()
+    RSIOverBought().main()
 
 
 def python_operator_run(**kwargs):
-    RSIOverSold().main()
+    RSIOverBought().main()

@@ -11,9 +11,9 @@ class FetchUsStockData:
         self.api_key = config.Config.API_KEY_twelvedata
         self.base_url = "https://api.twelvedata.com/rsi"
 
-    def get_us_stock_rsi(self, symbol: str, interval: str = "1day"):
+    def get_us_stock_rsi(self, ticker: str, interval: str = "1day"):
         params = {
-            "symbol": symbol,
+            "symbol": ticker,
             "interval": interval,
             "time_period": 14,
             "apikey": self.api_key,
@@ -28,15 +28,15 @@ class FetchUsStockData:
             # check values from api's response
             if "values" in data and len(data["values"]) > 0:
                 latest_rsi = float(data["values"][0]["rsi"])
-                print(f"current rsi of {symbol} ({interval}) is : {latest_rsi:.2f}")
+                print(f"current rsi of {ticker} ({interval}) is : {latest_rsi:.2f}")
                 return latest_rsi
             else:
                 error_msg = data.get("message", "not found")
-                print(f"❌ Error while getting data {symbol}: {error_msg}")
+                print(f"❌ Error while getting data {ticker}: {error_msg}")
                 return None
 
         except requests.exceptions.RequestException as e:
-            print(f"❌ Error while connecting to api {symbol}: {e}")
+            print(f"❌ Error while connecting to api {ticker}: {e}")
             return None
 
     @staticmethod
