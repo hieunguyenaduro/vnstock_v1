@@ -89,7 +89,9 @@ class LlLh:
         list_ticker_downtrend = []
         list_ticker_2_peak = []
         data = []
-        for ticket in Config.US_TICKERS:
+
+        us_ticket_on_binance = self.fetcher_binance_data.get_us_stock_tickers_on_crypto_exchange()
+        for ticket in us_ticket_on_binance:
             df = self.fetcher_us_data.get_data_us_stock(ticker=ticket)
 
             self.ll_lh(df, list_ticker_downtrend, list_ticker_2_peak, ticket)

@@ -4,6 +4,8 @@ from pathlib import Path
 from utiils.fetch_data import FetchData
 from utiils.common import Common
 from config import Config
+from utiils.fetch_us_stock_data import FetchUsStockData
+from utiils.fetch_binance_data import FetchBinanceData
 
 etl_path = str(Path(__file__).resolve().parents[1])
 
@@ -12,6 +14,8 @@ class WaveUp:
 
     def __init__(self):
         self.fetcher = FetchData()
+        self.fetcher_us_data = FetchUsStockData()
+        self.fetcher_binance_data = FetchBinanceData()
 
     @staticmethod
     def identify_zigzag_waves(df, threshold=20):
@@ -80,9 +84,7 @@ class WaveUp:
 
         return percentage_wave
 
-    def main(self):
-
-        start_time = time.perf_counter()
+    def vn_stock(self):
         data = []
         list_ticker_20_percent = []
         for ticket in Config.ALL_TICKERS:
@@ -95,7 +97,44 @@ class WaveUp:
 
         data.append({"percentage_wave": list_ticker_20_percent})
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "wave_up")
+            Common.create_json_file(data, etl_path, "wave_up_vn_stock")
+
+    def binance_token(self):
+        data = []
+        list_ticker_20_percent = []
+        for token in Config.TOKENS:
+            df = self.fetcher_binance_data.get_binance_data(token=token)
+
+            percentage_wave = self.plot_growth_waves(df, threshold=20)
+            if percentage_wave:
+                list_ticker_20_percent.append(token)
+
+        data.append({"percentage_wave": list_ticker_20_percent})
+        if len(data) > 0:
+            Common.create_json_file(data, etl_path, "wave_up_binance_token")
+
+    def us_stock(self):
+        data = []
+        list_ticker_20_percent = []
+        us_ticket_on_binance = self.fetcher_binance_data.get_us_stock_tickers_on_crypto_exchange()
+        for ticket in us_ticket_on_binance:
+            df = self.fetcher_us_data.get_data_us_stock(ticker=ticket)
+
+            percentage_wave = self.plot_growth_waves(df, threshold=20)
+            if percentage_wave:
+                list_ticker_20_percent.append(ticket)
+
+        data.append({"percentage_wave": list_ticker_20_percent})
+        if len(data) > 0:
+            Common.create_json_file(data, etl_path, "wave_up_us_stock")
+
+    def main(self):
+
+        start_time = time.perf_counter()
+
+        self.vn_stock()
+        self.binance_token()
+        self.us_stock()
 
         end_time = time.perf_counter()
         execution_time = end_time - start_time

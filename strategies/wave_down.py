@@ -81,8 +81,9 @@ class WaveDown:
     def vn_stock(self):
         data = []
         list_ticker_20_percent = []
-        for ticket in Config.US_TICKERS:
-            df = self.fetcher_us_data.get_data_us_stock(ticker=ticket)
+        for ticket in Config.ALL_TICKERS:
+            df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date='2024-03-5',
+                                                    end_date='2026-06-26')
 
             percentage_wave = self.plot_growth_waves(df, threshold=20)
             if percentage_wave:
@@ -90,9 +91,9 @@ class WaveDown:
 
         data.append({"percentage_wave": list_ticker_20_percent})
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "wave_down_us_stock")
+            Common.create_json_file(data, etl_path, "wave_down_vn_stock")
 
-    def us_stock(self):
+    def binance_token(self):
         data = []
         list_ticker_20_percent = []
         for token in Config.TOKENS:
@@ -104,14 +105,14 @@ class WaveDown:
 
         data.append({"percentage_wave": list_ticker_20_percent})
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "wave_down_vn_stock")
+            Common.create_json_file(data, etl_path, "wave_down_binance_token")
 
-    def binance_token(self):
+    def us_stock(self):
         data = []
         list_ticker_20_percent = []
-        for ticket in Config.ALL_TICKERS:
-            df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date='2026-05-5',
-                                                    end_date='2026-08-10')
+        us_ticket_on_binance = self.fetcher_binance_data.get_us_stock_tickers_on_crypto_exchange()
+        for ticket in us_ticket_on_binance:
+            df = self.fetcher_us_data.get_data_us_stock(ticker=ticket)
 
             percentage_wave = self.plot_growth_waves(df, threshold=20)
             if percentage_wave:
@@ -119,7 +120,7 @@ class WaveDown:
 
         data.append({"percentage_wave": list_ticker_20_percent})
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "wave_down_vn_stock")
+            Common.create_json_file(data, etl_path, "wave_down_us_stock")
 
     def main(self):
 
