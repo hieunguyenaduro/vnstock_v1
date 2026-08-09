@@ -108,7 +108,7 @@ class HhHl:
             data.append({"2_bottom": list_ticker_2_bottom})
 
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "hh_hl_binace_token")
+            Common.create_json_file(data, etl_path, "hh_hl_binance_token")
 
     def main(self):
 

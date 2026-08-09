@@ -6,10 +6,10 @@ from vnstock import register_user
 register_user(api_key='vnstock_366108191e0a3190950b24d2a04fe157')
 
 # Hoặc VCI - Dữ liệu đầy đủ hơn nhưng không chạy được trên Colab
-quote = Quote(symbol='ssi', source='VCI')
+quote = Quote(symbol='vnd', source='VCI')
 
 # Hoặc lấy theo khoảng thời gian cụ thể
-df = quote.history(start='2026-03-01', end='2026-06-26', interval="1d")
+df = quote.history(start='2026-05-01', end='2026-08-08', interval="1d")
 
 
 prices = df['close'].values

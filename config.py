@@ -36,8 +36,7 @@ class Config:
     ]
 
     TOKENS = [
-        # "BTC", "ETH", "LINK"
-        "OP/USDT"
+        "BTC", "ETH", "LINK"
     ]
 
 
