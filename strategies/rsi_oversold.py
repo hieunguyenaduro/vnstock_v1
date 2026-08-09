@@ -11,9 +11,10 @@ etl_path = str(Path(__file__).resolve().parents[1])
 
 class RSIOverSold:
 
-    def __init__(self):
+    def __init__(self, interval):
         self.fetcher_us_data = FetchUsStockData()
         self.fetcher_binance_data = FetchBinanceData()
+        self.interval = interval
 
     def us_stock(self):
         list_ticker_rsi_oversold = []
@@ -21,8 +22,13 @@ class RSIOverSold:
         data = []
 
         us_ticket_on_binance = self.fetcher_binance_data.get_us_stock_tickers_on_crypto_exchange()
+
+        if self.interval == "1d":
+            interval = "1day"
+        else:
+            interval = self.interval
         for ticket in us_ticket_on_binance:
-            latest_rsi = self.fetcher_us_data.get_us_stock_rsi(ticker=ticket)
+            latest_rsi = self.fetcher_us_data.get_us_stock_rsi(ticker=ticket, interval=interval)
             if latest_rsi is not None and latest_rsi <= 33:
                 list_ticker_rsi_oversold.append(latest_rsi)
             if latest_rsi is not None and latest_rsi <= 67:
@@ -43,7 +49,7 @@ class RSIOverSold:
 
         data = []
         for token in Config.TOKENS:
-            df = self.fetcher_binance_data.get_binance_data(token=token)
+            df = self.fetcher_binance_data.get_binance_data(token=token, timeframe=self.interval)
             latest_rsi = df[['timestamp', 'close', 'RSI']].tail()
             latest_rsi = latest_rsi.iloc[4]["RSI"]
             if latest_rsi is not None and latest_rsi <= 33:
@@ -71,8 +77,10 @@ class RSIOverSold:
 
 
 if __name__ == '__main__':
-    RSIOverSold().main()
+    RSIOverSold(interval='1d').main()
 
 
 def python_operator_run(**kwargs):
-    RSIOverSold().main()
+    global airflow_context
+    airflow_context = kwargs
+    RSIOverSold(interval=airflow_context).main()
