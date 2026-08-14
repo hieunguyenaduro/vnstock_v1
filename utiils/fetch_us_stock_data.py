@@ -9,7 +9,8 @@ class FetchUsStockData:
 
     def __init__(self):
         self.api_key = config.Config.API_KEY_twelvedata
-        self.base_url = "https://api.twelvedata.com/rsi"
+        self.base_url_rsi = "https://api.twelvedata.com/rsi"
+        self.base_url_sma = "https://api.twelvedata.com/sma"
 
     def get_us_stock_rsi(self, ticker: str, interval: str = "1day"):
         params = {
@@ -20,7 +21,7 @@ class FetchUsStockData:
         }
 
         try:
-            response = requests.get(self.base_url, params=params, timeout=10)
+            response = requests.get(self.base_url_rsi, params=params, timeout=10)
             response.raise_for_status()
             data = response.json()
             time.sleep(8)
@@ -38,6 +39,63 @@ class FetchUsStockData:
         except requests.exceptions.RequestException as e:
             print(f"❌ Error while connecting to api {ticker}: {e}")
             return None
+
+    def get_us_stock_ma50(self, ticker: str, interval: str = "1day"):
+        params = {
+            "symbol": ticker,
+            "interval": interval,
+            "time_period": 50,
+            "apikey": self.api_key,
+        }
+
+        try:
+            response = requests.get(self.base_url_sma, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            time.sleep(8)
+
+            # check values from api's response
+            if "values" in data and len(data["values"]) > 0:
+                latest_sma = float(data["values"][0]["sma"])
+                print(f"current rsi of {ticker} ({interval}) is : {latest_sma:.2f}")
+                return latest_sma
+            else:
+                error_msg = data.get("message", "not found")
+                print(f"❌ Error while getting data {ticker}: {error_msg}")
+                return None
+
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Error while connecting to api {ticker}: {e}")
+            return None
+
+    def get_us_stock_ma200(self, ticker: str, interval: str = "1day"):
+        params = {
+            "symbol": ticker,
+            "interval": interval,
+            "time_period": 200,
+            "apikey": self.api_key,
+        }
+
+        try:
+            response = requests.get(self.base_url_sma, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            time.sleep(8)
+
+            # check values from api's response
+            if "values" in data and len(data["values"]) > 0:
+                latest_sma = float(data["values"][0]["sma"])
+                print(f"current rsi of {ticker} ({interval}) is : {latest_sma:.2f}")
+                return latest_sma
+            else:
+                error_msg = data.get("message", "not found")
+                print(f"❌ Error while getting data {ticker}: {error_msg}")
+                return None
+
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Error while connecting to api {ticker}: {e}")
+            return None
+
 
     @staticmethod
     def get_data_us_stock(ticker, period_data="100d", interval="1d"):
@@ -97,6 +155,6 @@ if __name__ == "__main__":
     symbols_list = getattr(config.Config, "SYMBOLS_LIST", ["AAPL", "MSFT", "TSLA"])
 
     for symbol in symbols_list:
-        fetcher.get_us_stock_rsi(symbol=symbol, interval="1day")
+        fetcher.get_us_stock_rsi(ticker=symbol, interval="1day")
         fetcher.get_data_us_stock(symbol)
 

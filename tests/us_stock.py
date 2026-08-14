@@ -26,7 +26,30 @@ def get_us_stock_rsi(symbol, interval):
     print(f"RSI hiện tại của {symbol} là: {latest_rsi}")
     time.sleep(8)
 
+def get_sma():
+    import requests
+    # url = "https://api.twelvedata.com/complex_data?apikey={}".format(API_KEY)
+    url = f"https://api.twelvedata.com/sma?symbol=TSLA&interval=1day&time_period=50&apikey={API_KEY}"
+
+    response = requests.get(url).json()
+    latest_sma = response["values"][0]["sma"]
+
+    # payload = {
+    #     "symbols": "TSLA",
+    #     "intervals": '1day',
+    #     "methods": [
+    #         {"name": "sma", "time_period": 50, "outputsize": 1},
+    #         {"name": "sma", "time_period": 200, "outputsize": 1}
+    #     ]
+    # }
+    #
+    # response = requests.post(url, json=payload)
+    # data = response.json()
+
 if __name__ == "__main__":
+
+    get_sma()
+
     # Danh sách các mã cổ phiếu Mỹ bạn muốn theo dõi trên Binance
     us_stocks = ["TSLA", "AAPL", "NVDA", "MSFT"]
 

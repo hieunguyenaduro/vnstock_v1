@@ -23,11 +23,15 @@ class RSIOverSold:
 
         us_ticket_on_binance = self.fetcher_binance_data.get_us_stock_tickers_on_crypto_exchange()
 
+        us_tickets = []
+        for item in us_ticket_on_binance:
+            us_tickets.append(item.replace('B/USDT',''))
+
         if self.interval == "1d":
             interval = "1day"
         else:
             interval = self.interval
-        for ticket in us_ticket_on_binance:
+        for ticket in us_tickets:
             latest_rsi = self.fetcher_us_data.get_us_stock_rsi(ticker=ticket, interval=interval)
             if latest_rsi is not None and latest_rsi <= 33:
                 list_ticker_rsi_oversold.append(latest_rsi)
@@ -78,8 +82,9 @@ class RSIOverSold:
 
 if __name__ == '__main__':
     RSIOverSold(interval='1d').main()
-
-
+"""
+    - interval: ('5m', '15m', '1h', '1d'...)
+"""
 def python_operator_run(**kwargs):
     global airflow_context
     airflow_context = kwargs
