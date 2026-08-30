@@ -57,7 +57,7 @@ class FetchUsStockData:
             # check values from api's response
             if "values" in data and len(data["values"]) > 0:
                 latest_sma = float(data["values"][0]["sma"])
-                print(f"current rsi of {ticker} ({interval}) is : {latest_sma:.2f}")
+                print(f"current sma50 of {ticker} ({interval}) is : {latest_sma:.2f}")
                 return latest_sma
             else:
                 error_msg = data.get("message", "not found")
@@ -85,7 +85,7 @@ class FetchUsStockData:
             # check values from api's response
             if "values" in data and len(data["values"]) > 0:
                 latest_sma = float(data["values"][0]["sma"])
-                print(f"current rsi of {ticker} ({interval}) is : {latest_sma:.2f}")
+                print(f"current sma200 of {ticker} ({interval}) is : {latest_sma:.2f}")
                 return latest_sma
             else:
                 error_msg = data.get("message", "not found")

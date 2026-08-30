@@ -31,7 +31,8 @@ class RSIOverSold:
             interval = "1day"
         else:
             interval = self.interval
-        for ticket in us_tickets:
+
+        for ticket in Config.US_TICKERS:
             latest_rsi = self.fetcher_us_data.get_us_stock_rsi(ticker=ticket, interval=interval)
             if latest_rsi is not None and latest_rsi <= 33:
                 list_ticker_rsi_oversold.append(latest_rsi)
@@ -67,7 +68,7 @@ class RSIOverSold:
             data.append({"rsi_overbought_binance_token": list_token_rsi_oversold})
 
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "rsi_binance_token")
+            Common.create_json_file(data, etl_path, "rsi_{}_binance_token".format(self.interval))
 
     def main(self):
         start_time = time.perf_counter()

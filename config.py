@@ -14,8 +14,8 @@ class Config:
                         "vnd", "bsi", "tcx", "vpx", "hcm", "bvs"],
         "ngan hang": ["bvb", "tpb", "msb", "nab", "tcb", "vib", "shb", "vab", "bab", "nvb", "eib", "hdb", "mbb", "ctg",
                       "acb", "vcb", "vpb", "stb", "evf", "ocb", "bid", "lpb"],
-        "thep": ["vgs", "nkg", "hsg", "hpg"],  # Removed 'bvh' (Insurance) from here
-        "bao hiem": ["bvh"],  # Created a proper home for Bao Viet
+        "thep": ["vgs", "nkg", "hsg", "hpg"],
+        "bao hiem": ["bvh"],
         "det may": ["msh", "tng"],
         "ban le": ["frt", "mwg", "pnj", "pet", "dgw", "msn", "vjc", "hvn", "acv"],
         "bds kcn": ["idc", "sip", "ntc", "szc", "szl", "vgc", "kbc", "gvr", "bcm", "tip", "phr"],
@@ -29,11 +29,11 @@ class Config:
     # Automatically flattens all tickers into a single list
     ALL_TICKERS = [t for tickers in WATCHLIST.values() for t in tickers]
 
-    US_TICKERS = [
-        "AAPL", "MSFT", "NVDA", "GOOGL", "META", "TSLA",
-        "AMZN", "ORCL", "SPXC", "AMD", "INTC", "CRM", "PLTR",
-        "SMCI", "SNPS", "CDNS"
-    ]
+    US_TICKERS = ["MU", "CRCL", "NVDA", "SNDK", "TSLA", "SPCX", "AMD", "EWY", "INTC", "MSTR", "LITE", "META", "MSFT", "PLTR", "QQQ",
+     "CBRS", "COIN", "DRAM", "GLW", "GOOGL", "NBIS", "QCOM", "SOXL", "SPY", "WDC", "SKHY", "AAOI", "ARM", "AVGO",
+     "BABA", "HOOD", "IBM", "MRVL", "NOK", "TSM", "RKLB", "AXTI", "CRWV", "INTW", "KORU", "MUU", "MVLL", "ORCL", "QNT",
+     "SNXX", "TQQQ", "AAPL", "AMAT", "AMZN", "BE", "DELL", "FLNC", "GS", "PYPL", "SMH", "SOXS", "ASML", "ASTS", "BMNR",
+     "COHR", "CRDO", "IREN", "NFLX", "SMCI", "USAR", "ALAB", "GME", "DJT"]
 
     TOKENS = [
         "BTC/USDT", "ETH/USDT", "LINK/USDT"
@@ -49,5 +49,5 @@ class Config:
 
     # API Configuration (Safe fallback method)
     # Corrected indentation, capitalization, and added environment variable support
-    API_KEY = os.getenv('VNSTOCK_API_KEY', 'vnstock_366108191e0a3190950b24d2a04fe157')
-    API_KEY_twelvedata = os.getenv('twelvedata', '1652ed6172c64a948342413ca45a8ca3')
+    API_KEY = os.getenv("VNSTOCK_API_KEY", "vnstock_366108191e0a3190950b24d2a04fe157")
+    API_KEY_twelvedata = os.getenv("twelvedata", "1652ed6172c64a948342413ca45a8ca3")

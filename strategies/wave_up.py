@@ -116,8 +116,7 @@ class WaveUp:
     def us_stock(self):
         data = []
         list_ticker_20_percent = []
-        us_ticket_on_binance = self.fetcher_binance_data.get_us_stock_tickers_on_crypto_exchange()
-        for ticket in us_ticket_on_binance:
+        for ticket in Config.US_TICKERS:
             df = self.fetcher_us_data.get_data_us_stock(ticker=ticket)
 
             percentage_wave = self.plot_growth_waves(df, threshold=20)

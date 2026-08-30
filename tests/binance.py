@@ -34,10 +34,28 @@ def get_us_stock_tickers_on_crypto_exchange():
 
     # Kiểm tra xem sàn có mã TSLA hay không
     # tsla_symbols = [symbol for symbol in markets if 'TSLA' in symbol]
-    for ticker in markets:
-        if 'B/USDT' in ticker:
-            print("Các cặp TSLA có trên sàn:", ticker)
 
+
+
+    list_ticket =[]
+    for ticker in markets:
+
+        if 'B/USDT' in ticker:
+            list_ticket.append(ticker[:-6])
+            # print("Các cặp TSLA có trên sàn:", ticker)
+
+    list_remove = ['BNB/USDT', 'USDSB/USDT', 'DGB/USDT', 'TRB/USDT', 'CKB/USDT', 'SHIB/USDT', 'MOB/USDT',
+                   'PHB/USDT', 'VIB/USDT', 'AMB/USDT', 'ARB/USDT', 'BB/USDT', 'YB/USDT', 'BNB/USD', 'TRB/USD',
+                   'DGB/USD', '1000SHIB/USD', 'PHB/USD', 'CKB/USD', 'ARB/USD', 'AMB/USD', 'BB/USD', 'BROCCOLIF3B/USD',
+                   'B/USD', '1000000BOB/USD', 'PTB/USD', 'UB/USD', 'YB/USD', 'LAB/USD', 'GAIB/USD', 'BOB/USD',
+                   'BIRB/USD','BSB/USD', 'BRKB/USD', 'RKLB/USD', 'ALAB/USD' ,'BN', 'USDS', 'DG', 'TR', 'CK', 'SHI', 'MO', 'PH', 'VI', 'AM', 'AR', 'B', 'Y']
+
+    for item in list_remove:
+        if item in list_ticket:
+            list_ticket.remove(item)
+
+    print("ticket tech :", list_ticket)
+    print("count ticket :",len( list_ticket))
 
 # Run
 if __name__ == "__main__":
