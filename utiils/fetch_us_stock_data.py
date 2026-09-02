@@ -11,6 +11,7 @@ class FetchUsStockData:
         self.api_key = config.Config.API_KEY_twelvedata
         self.base_url_rsi = "https://api.twelvedata.com/rsi"
         self.base_url_sma = "https://api.twelvedata.com/sma"
+        self.base_url_time_series = "https://api.twelvedata.com/time_series"
 
     def get_us_stock_rsi(self, ticker: str, interval: str = "1day"):
         params = {
@@ -147,6 +148,50 @@ class FetchUsStockData:
         except Exception as e:
             print(f"❌ Error while loading data {ticker}: {e}")
             return None
+
+    @staticmethod
+    def get_current_stock_price(ticker):
+        ticker = yf.Ticker(ticker)
+
+        fast_info = ticker.fast_info
+        current_price = fast_info['lastPrice']
+
+        print(f"Ticker: {symbol.upper()}")
+        print(f"Current Price: ${current_price:.2f}")
+
+        return current_price
+
+    def get_stock_data_from_timeseries(self, ticker, interval: str = "1day"):
+        params = {
+            "symbol": ticker,
+            "interval": interval,
+            "outputsize": 200,
+            "apikey": self.api_key,
+        }
+
+        try:
+            response = requests.get(self.base_url_time_series, params=params, timeout=10)
+            data = response.json()
+
+            values = data.get("values", [])
+            time.sleep(8)
+
+            if len(values) < 200:
+                return None, None, None
+
+            current_price = float(values[0]["close"])
+
+            closes_50 = [float(item["close"]) for item in values[:50]]
+            closes_200 = [float(item["close"]) for item in values[:200]]
+
+            sma50 = sum(closes_50) / 50
+            sma200 = sum(closes_200) / 200
+
+            return current_price, sma50, sma200
+
+        except Exception as e:
+            print(f"Error to get {ticker}: {e}")
+            return None, None, None
 
 
 if __name__ == "__main__":

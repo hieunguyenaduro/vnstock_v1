@@ -45,6 +45,44 @@ class FetchBinanceData:
 
         return matched_symbols
 
+    def get_current_token_price(self, token):
+        ticker = self.exchange.fetch_ticker(token)
+        current_price = ticker['last']
+        print(f"Current {token} price on Binance: ${current_price:,.2f}")
+
+        return current_price
+
+    def get_binance_from_timeseries(self, token: str, timeframe: str = "1d"):
+
+        try:
+
+            ohlcv = self.exchange.fetch_ohlcv(token, timeframe, limit=200)
+
+            close_prices = [candle[4] for candle in ohlcv]
+
+            current_price = float(close_prices[0]["close"])
+
+            # Calculate SMAs from the most recent closing prices
+            sma_50 = sum(close_prices[-50:]) / 50
+            sma_200 = sum(close_prices[-200:]) / 200
+
+            print(f"SMA 50:  ${sma_50:,.2f}")
+            print(f"SMA 200: ${sma_200:,.2f}")
+
+            # check values from api's response
+            if sma_50 > 0:
+                print(f"current sma50 of {token} ({timeframe}) is : {sma_50:.2f}")
+                print(f"current sma200 of {token} ({timeframe}) is : {sma_200:.2f}")
+                return current_price, sma_50, sma_200
+            else:
+                error_msg = data.get("message", "not found")
+                print(f"❌ Error while getting data {token}: {error_msg}")
+                return None
+
+        except Exception as e:
+            print(f"❌ Error while connecting to api {token}: {e}")
+            return None
+
 
 if __name__ == "__main__":
     token = "BTC/USDT"

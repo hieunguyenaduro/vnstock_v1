@@ -57,7 +57,30 @@ def get_us_stock_tickers_on_crypto_exchange():
     print("ticket tech :", list_ticket)
     print("count ticket :",len( list_ticket))
 
-# Run
+
+def sma_50():
+    import ccxt
+
+    exchange = ccxt.binance({
+        'enableRateLimit': True,
+    })
+
+    symbol = 'BTC/USDT'
+    timeframe = '1d'
+
+    # Fetch 200 candles
+    ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=200)
+
+    # Extract close prices
+    close_prices = [candle[4] for candle in ohlcv]
+
+    # Calculate SMAs from the most recent closing prices
+    sma_50 = sum(close_prices[-50:]) / 50
+    sma_200 = sum(close_prices[-200:]) / 200
+
+    print(f"SMA 50:  ${sma_50:,.2f}")
+    print(f"SMA 200: ${sma_200:,.2f}")
+
 if __name__ == "__main__":
     symbol = "BTC/USDT"
     timeframe = "1d"
@@ -73,3 +96,6 @@ if __name__ == "__main__":
     print(f"\nGiá RSI hiện tại: {current_rsi:.2f}")
 
     get_us_stock_tickers_on_crypto_exchange()
+
+
+    sma_50()

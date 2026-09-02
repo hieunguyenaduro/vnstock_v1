@@ -46,9 +46,64 @@ def get_sma():
     # response = requests.post(url, json=payload)
     # data = response.json()
 
+
+import yfinance as yf
+
+
+def get_stock_price(symbol):
+    ticker = yf.Ticker(symbol)
+
+    # Fast lookup for fast real-time/latest price
+    fast_info = ticker.fast_info
+    current_price = fast_info['lastPrice']
+    previous_close = fast_info['previousClose']
+
+    print(f"Ticker: {symbol.upper()}")
+    print(f"Current Price: ${current_price:.2f}")
+    print(f"Previous Close: ${previous_close:.2f}")
+
+
+def get_stock_data_from_timeseries():
+    ticker='AMD'
+    """Chỉ gọi 1 API /time_series với outputsize=200 để lấy giá hiện tại + tự tính SMA50 và SMA200"""
+    url = f"https://api.twelvedata.com/time_series?symbol={ticker}&interval=1day&outputsize=200&apikey={API_KEY}"
+
+    try:
+        res = requests.get(url).json()
+        values = res.get("values", [])
+
+        # Cần tối thiểu 200 phiên giao dịch để tính SMA200
+        if len(values) < 200:
+            return None, None, None
+
+        # Nến mới nhất là values[0]
+        current_price = float(values[0]["close"])
+
+        # Lấy giá đóng cửa của 50 và 200 phiên gần nhất
+        closes_50 = [float(item["close"]) for item in values[:50]]
+        closes_200 = [float(item["close"]) for item in values[:200]]
+
+        sma50 = sum(closes_50) / 50
+        sma200 = sum(closes_200) / 200
+
+        print(f"Current Price: ${current_price:.2f}")
+        print(f"Current sma50: ${sma50:.2f}")
+        print(f"Current sma200: ${sma200:.2f}")
+
+        return current_price, sma50, sma200
+
+    except Exception as e:
+        print(f"Lỗi lấy time_series cho mã {ticker}: {e}")
+        return None, None, None
+
 if __name__ == "__main__":
 
-    get_sma()
+    # Example: Get Apple (AAPL) price
+    # get_stock_price("AMD")
+
+    get_stock_data_from_timeseries()
+
+    # get_sma()
 
     # Danh sách các mã cổ phiếu Mỹ bạn muốn theo dõi trên Binance
     us_stocks = ["TSLA", "AAPL", "NVDA", "MSFT"]
