@@ -6,7 +6,8 @@
             chiến lươc này dành cho đánh đảo chiều xh trên khung lớn
 
 
-            thêm 1 chiến lược là : vượt ma50 và ma200 không qu 15% . mục tiêu là kiếm chiến lược polarity ( vượt kháng cự và backtest)
+            thêm 1 chiến lược là : vượt ma50 và ma200 không quá 15% .
+            mục tiêu là kiếm chiến lược polarity ( vượt kháng cự và backtest)
             """
 
 import time

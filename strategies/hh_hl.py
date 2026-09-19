@@ -19,7 +19,7 @@ class HhHl:
         self.fetcher_binance_data = FetchBinanceData()
 
     @staticmethod
-    def hh_hl(df, list_ticker_uptrend, list_ticker_2_bottom, ticket):
+    def hh_hl(df, list_ticker_uptrend, ticket):
         prices = df['close'].values
 
         # 2. Find all local peaks and troughs
@@ -60,53 +60,44 @@ class HhHl:
 
     def vn_stock(self):
         list_ticker_uptrend = []
-        list_ticker_2_bottom = []
         data = []
         for ticket in Config.ALL_TICKERS:
             df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date='2026-03-5',
                                                     end_date='2026-08-08')
 
-            self.hh_hl(df, list_ticker_uptrend, list_ticker_2_bottom, ticket)
+            self.hh_hl(df, list_ticker_uptrend, ticket)
 
         if len(list_ticker_uptrend) > 0:
             data.append({"hh_hl": list_ticker_uptrend})
-        if len(list_ticker_2_bottom) > 0:
-            data.append({"2_bottom": list_ticker_2_bottom})
 
         if len(data) > 0:
             Common.create_json_file(data, etl_path, "hh_hl_vn_stock")
 
     def us_stock(self):
         list_ticker_uptrend = []
-        list_ticker_2_bottom = []
         data = []
 
         for ticket in Config.US_TICKERS:
             df = self.fetcher_us_data.get_data_us_stock(ticker=ticket)
 
-            self.hh_hl(df, list_ticker_uptrend, list_ticker_2_bottom, ticket)
+            self.hh_hl(df, list_ticker_uptrend, ticket)
 
         if len(list_ticker_uptrend) > 0:
             data.append({"hh_hl": list_ticker_uptrend})
-        if len(list_ticker_2_bottom) > 0:
-            data.append({"2_bottom": list_ticker_2_bottom})
 
         if len(data) > 0:
             Common.create_json_file(data, etl_path, "hh_hl_us_stock")
 
     def binance_token(self):
         list_ticker_uptrend = []
-        list_ticker_2_bottom = []
         data = []
         for token in Config.TOKENS:
             df = self.fetcher_binance_data.get_binance_data(token=token)
 
-            self.hh_hl(df, list_ticker_uptrend, list_ticker_2_bottom, token)
+            self.hh_hl(df, list_ticker_uptrend, token)
 
         if len(list_ticker_uptrend) > 0:
             data.append({"hh_hl": list_ticker_uptrend})
-        if len(list_ticker_2_bottom) > 0:
-            data.append({"2_bottom": list_ticker_2_bottom})
 
         if len(data) > 0:
             Common.create_json_file(data, etl_path, "hh_hl_binance_token")

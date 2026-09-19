@@ -19,7 +19,7 @@ class LlLh:
         self.fetcher_binance_data = FetchBinanceData()
 
     @staticmethod
-    def ll_lh(df, ticket, list_ticker_downtrend, list_ticker_2_peak):
+    def ll_lh(df, ticket, list_ticker_downtrend):
         prices = df['close'].values
 
         # 2. Tìm Đỉnh (Peaks) và Đáy (Troughs)
@@ -69,53 +69,44 @@ class LlLh:
 
     def vn_stock(self):
         list_ticker_downtrend = []
-        list_ticker_2_peak = []
         data = []
         for ticket in Config.ALL_TICKERS:
             df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date='2026-03-01',
                                                     end_date='2026-06-26')
 
-            self.ll_lh(df, ticket, list_ticker_downtrend, list_ticker_2_peak)
+            self.ll_lh(df, ticket, list_ticker_downtrend)
         
         if len(list_ticker_downtrend) > 0:
             data.append({"hh_hl": list_ticker_downtrend})
-        if len(list_ticker_2_peak) > 0:
-            data.append({"2_peaks": list_ticker_2_peak})
 
         if len(data) > 0:
             Common.create_json_file(data, etl_path, "ll_hh_vn_stock")
     
     def us_stock(self):
         list_ticker_downtrend = []
-        list_ticker_2_peak = []
         data = []
 
         for ticket in Config.US_TICKERS:
             df = self.fetcher_us_data.get_data_us_stock(ticker=ticket)
 
-            self.ll_lh(df, list_ticker_downtrend, list_ticker_2_peak, ticket)
+            self.ll_lh(df, list_ticker_downtrend, ticket)
 
         if len(list_ticker_downtrend) > 0:
             data.append({"hh_hl": list_ticker_downtrend})
-        if len(list_ticker_2_peak) > 0:
-            data.append({"2_bottom": list_ticker_2_peak})
 
         if len(data) > 0:
             Common.create_json_file(data, etl_path, "ll_hh_us_stock")
 
     def binance_token(self):
         list_ticker_downtrend = []
-        list_ticker_2_peak = []
         data = []
         for token in Config.TOKENS:
             df = self.fetcher_binance_data.get_binance_data(token=token)
 
-            self.ll_lh(df, list_ticker_downtrend, list_ticker_2_peak, token)
+            self.ll_lh(df, list_ticker_downtrend, token)
 
         if len(list_ticker_downtrend) > 0:
             data.append({"hh_hl": list_ticker_downtrend})
-        if len(list_ticker_2_peak) > 0:
-            data.append({"2_bottom": list_ticker_2_peak})
 
         if len(data) > 0:
             Common.create_json_file(data, etl_path, "ll_hh_binance_token")
