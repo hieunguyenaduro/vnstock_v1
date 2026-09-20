@@ -1,5 +1,7 @@
 import time
 from pathlib import Path
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from scipy.signal import find_peaks
 from utiils.fetch_data import FetchData
@@ -17,6 +19,11 @@ class HhHl:
         self.fetcher = FetchData()
         self.fetcher_us_data = FetchUsStockData()
         self.fetcher_binance_data = FetchBinanceData()
+        self.execution_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime('%Y-%m-%d')
+        range_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")) - timedelta(days=60)
+        self.execution_range_date = range_date.strftime('%Y-%m-%d')
+        # utc
+        # self.execution_date = datetime.now(ZoneInfo("UTC")).strftime('%Y-%m-%d')
 
     @staticmethod
     def hh_hl(df, list_ticker_uptrend, ticket):
@@ -62,8 +69,8 @@ class HhHl:
         list_ticker_uptrend = []
         data = []
         for ticket in Config.ALL_TICKERS:
-            df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date='2026-03-5',
-                                                    end_date='2026-08-08')
+            df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date=self.execution_range_date,
+                                                    end_date=self.execution_date)
 
             self.hh_hl(df, list_ticker_uptrend, ticket)
 

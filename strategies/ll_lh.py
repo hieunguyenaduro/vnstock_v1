@@ -1,5 +1,7 @@
 import time
 from pathlib import Path
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from scipy.signal import find_peaks
 from utiils.fetch_data import FetchData
@@ -17,6 +19,11 @@ class LlLh:
         self.fetcher = FetchData()
         self.fetcher_us_data = FetchUsStockData()
         self.fetcher_binance_data = FetchBinanceData()
+        self.execution_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime('%Y-%m-%d')
+        range_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")) - timedelta(days=60)
+        self.execution_range_date = range_date.strftime('%Y-%m-%d')
+        # utc
+        # self.execution_date = datetime.now(ZoneInfo("UTC")).strftime('%Y-%m-%d')
 
     @staticmethod
     def ll_lh(df, ticket, list_ticker_downtrend):
@@ -71,8 +78,8 @@ class LlLh:
         list_ticker_downtrend = []
         data = []
         for ticket in Config.ALL_TICKERS:
-            df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date='2026-03-01',
-                                                    end_date='2026-06-26')
+            df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date=self.execution_range_date,
+                                                    end_date=self.execution_date)
 
             self.ll_lh(df, ticket, list_ticker_downtrend)
         
@@ -89,7 +96,7 @@ class LlLh:
         for ticket in Config.US_TICKERS:
             df = self.fetcher_us_data.get_data_us_stock(ticker=ticket)
 
-            self.ll_lh(df, list_ticker_downtrend, ticket)
+            self.ll_lh(df, ticket, list_ticker_downtrend)
 
         if len(list_ticker_downtrend) > 0:
             data.append({"hh_hl": list_ticker_downtrend})
@@ -103,7 +110,7 @@ class LlLh:
         for token in Config.TOKENS:
             df = self.fetcher_binance_data.get_binance_data(token=token)
 
-            self.ll_lh(df, list_ticker_downtrend, token)
+            self.ll_lh(df, token, list_ticker_downtrend)
 
         if len(list_ticker_downtrend) > 0:
             data.append({"hh_hl": list_ticker_downtrend})

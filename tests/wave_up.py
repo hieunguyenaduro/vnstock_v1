@@ -1,14 +1,24 @@
 import plotly.graph_objects as go
 from vnstock import *
 from vnstock import register_user
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 register_user(api_key='vnstock_366108191e0a3190950b24d2a04fe157')
 
+end_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime('%Y-%m-%d')
+start_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")) - timedelta(days=60)
+start_date = start_date.strftime('%Y-%m-%d')
+
+
+
 # Hoặc VCI - Dữ liệu đầy đủ hơn nhưng không chạy được trên Colab
-quote = Quote(symbol='vjc', source='VCI')
+quote = Quote(symbol='ssi', source='VCI')
 
 # Hoặc lấy theo khoảng thời gian cụ thể
-df = quote.history(start='2025-01-01', end='2026-04-24', interval="1W")
+df = quote.history(start=start_date, end=end_date, interval="1d")
+
+# df = quote.history(start='2026-06-22', end='2026-09-22', interval="1d")
 
 
 def identify_zigzag_waves(df, threshold=20):

@@ -1,9 +1,5 @@
 [
     {
-        "percentage_wave": [
-            "BTC/USDT",
-            "ETH/USDT",
-            "LINK/USDT"
-        ]
+        "percentage_wave": []
     }
 ]

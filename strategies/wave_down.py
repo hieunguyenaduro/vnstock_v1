@@ -1,6 +1,9 @@
 import time
 from pathlib import Path
 
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 from utiils.fetch_data import FetchData
 from utiils.common import Common
 from config import Config
@@ -16,6 +19,12 @@ class WaveDown:
         self.fetcher = FetchData()
         self.fetcher_us_data = FetchUsStockData()
         self.fetcher_binance_data = FetchBinanceData()
+
+        self.execution_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime('%Y-%m-%d')
+        range_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")) - timedelta(days=60)
+        self.execution_range_date = range_date.strftime('%Y-%m-%d')
+        # utc
+        # self.execution_date = datetime.now(ZoneInfo("UTC")).strftime('%Y-%m-%d')
 
     @staticmethod
     def identify_zigzag_waves(df, threshold=10):
@@ -82,8 +91,8 @@ class WaveDown:
         data = []
         list_ticker_20_percent = []
         for ticket in Config.ALL_TICKERS:
-            df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date='2024-03-5',
-                                                    end_date='2026-06-26')
+            df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date=self.execution_range_date,
+                                                    end_date=self.execution_date)
 
             percentage_wave = self.plot_growth_waves(df, threshold=20)
             if percentage_wave:

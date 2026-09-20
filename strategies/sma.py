@@ -11,6 +11,9 @@
             """
 
 import time
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 from pathlib import Path
 
 from utiils.common import Common
@@ -27,6 +30,11 @@ class SMA:
         self.fetcher_us_data = FetchUsStockData()
         self.fetcher_binance_data = FetchBinanceData()
         self.interval = interval
+        self.execution_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime('%Y-%m-%d')
+        range_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")) - timedelta(days=60)
+        self.execution_range_date = range_date.strftime('%Y-%m-%d')
+        # utc
+        # self.execution_date = datetime.now(ZoneInfo("UTC")).strftime('%Y-%m-%d')
 
     def us_stock(self):
         list_ticker_sma = []

@@ -18,7 +18,7 @@ class FetchData():
         timeframe: '1H', '4H', '1D'
         vnstock3 interval map: '1H'->'1h', '4H'->'4h', '1D'->'1D'
         """
-        time.sleep(3)
+        time.sleep(5)
         interval_map = {"1H": "1h", "4H": "4h", "1D": "1D", "1W": "1w", "1M": "1M"}
 
         quote = Quote(symbol=ticker, source='VCI')

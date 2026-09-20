@@ -21,11 +21,11 @@ class RSIOverSold:
         list_us_stock_rsi_overbought = []
         data = []
 
-        us_ticket_on_binance = self.fetcher_binance_data.get_us_stock_tickers_on_crypto_exchange()
+        # us_ticket_on_binance = self.fetcher_binance_data.get_us_stock_tickers_on_crypto_exchange()
 
-        us_tickets = []
-        for item in us_ticket_on_binance:
-            us_tickets.append(item.replace('B/USDT',''))
+        # us_tickets = []
+        # for item in us_ticket_on_binance:
+        #     us_tickets.append(item.replace('B/USDT',''))
 
         if self.interval == "1d":
             interval = "1day"
@@ -74,7 +74,7 @@ class RSIOverSold:
         start_time = time.perf_counter()
 
         self.us_stock()
-        self.binance_token()
+        # self.binance_token()
 
         end_time = time.perf_counter()
         execution_time = end_time - start_time
@@ -87,6 +87,5 @@ if __name__ == '__main__':
     - interval: ('5m', '15m', '1h', '1d'...)
 """
 def python_operator_run(**kwargs):
-    global airflow_context
-    airflow_context = kwargs
-    RSIOverSold(interval=airflow_context).main()
+    interval = kwargs.get("interval") or kwargs.get("op_kwargs", {}).get("interval")
+    RSIOverSold(interval=interval if interval else "1d").main()

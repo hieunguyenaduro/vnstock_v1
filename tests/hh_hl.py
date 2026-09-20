@@ -7,10 +7,10 @@ import time
 register_user(api_key='vnstock_366108191e0a3190950b24d2a04fe157')
 
 # Hoặc VCI - Dữ liệu đầy đủ hơn nhưng không chạy được trên Colab
-quote = Quote(symbol='bvs', source='VCI')
+quote = Quote(symbol='ssi', source='VCI')
 
 # Hoặc lấy theo khoảng thời gian cụ thể
-df = quote.history(start='2026-05-25', end='2026-06-30', interval="1d")
+df = quote.history(start='2026-07-22', end='2026-09-19', interval="1d")
 
 prices = df['close'].values
 dates = df['time'].values
