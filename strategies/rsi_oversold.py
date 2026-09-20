@@ -21,12 +21,6 @@ class RSIOverSold:
         list_us_stock_rsi_overbought = []
         data = []
 
-        # us_ticket_on_binance = self.fetcher_binance_data.get_us_stock_tickers_on_crypto_exchange()
-
-        # us_tickets = []
-        # for item in us_ticket_on_binance:
-        #     us_tickets.append(item.replace('B/USDT',''))
-
         if self.interval == "1d":
             interval = "1day"
         else:
@@ -35,9 +29,9 @@ class RSIOverSold:
         for ticket in Config.US_TICKERS:
             latest_rsi = self.fetcher_us_data.get_us_stock_rsi(ticker=ticket, interval=interval)
             if latest_rsi is not None and latest_rsi <= 33:
-                list_ticker_rsi_oversold.append(latest_rsi)
-            if latest_rsi is not None and latest_rsi <= 67:
-                list_us_stock_rsi_overbought.append(latest_rsi)
+                list_ticker_rsi_oversold.append(ticket)
+            if latest_rsi is not None and latest_rsi >= 67:
+                list_us_stock_rsi_overbought.append(ticket)
 
 
         if len(list_ticker_rsi_oversold) > 0:
@@ -58,9 +52,9 @@ class RSIOverSold:
             latest_rsi = df[['timestamp', 'close', 'RSI']].tail()
             latest_rsi = latest_rsi.iloc[4]["RSI"]
             if latest_rsi is not None and latest_rsi <= 33:
-                list_token_rsi_oversold.append(latest_rsi)
-            if latest_rsi is not None and latest_rsi <= 67:
-                list_token_rsi_overbought.append(latest_rsi)
+                list_token_rsi_oversold.append(token)
+            if latest_rsi is not None and latest_rsi >= 67:
+                list_token_rsi_overbought.append(token)
 
         if len(list_token_rsi_oversold) > 0:
             data.append({"rsi_oversold_binance_token": list_token_rsi_oversold})
@@ -74,7 +68,7 @@ class RSIOverSold:
         start_time = time.perf_counter()
 
         self.us_stock()
-        # self.binance_token()
+        self.binance_token()
 
         end_time = time.perf_counter()
         execution_time = end_time - start_time
