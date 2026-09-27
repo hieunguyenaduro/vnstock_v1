@@ -135,16 +135,18 @@ class WaveUp:
             Common.create_json_file(data, etl_path, "wave_up_us_stock")
 
     def main(self):
+        if not Config.is_uptrend_off:
+            start_time = time.perf_counter()
 
-        start_time = time.perf_counter()
+            self.vn_stock()
+            self.binance_token()
+            self.us_stock()
 
-        self.vn_stock()
-        self.binance_token()
-        self.us_stock()
-
-        end_time = time.perf_counter()
-        execution_time = end_time - start_time
-        print(f'"execution_time": {execution_time:.2f}')
+            end_time = time.perf_counter()
+            execution_time = end_time - start_time
+            print(f'"execution_time": {execution_time:.2f}')
+        else:
+            print("uptrend feature is off ")
 
 
 if __name__ == '__main__':

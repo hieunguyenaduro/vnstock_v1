@@ -59,7 +59,7 @@ class RSIOverSold:
         if len(list_token_rsi_oversold) > 0:
             data.append({"rsi_oversold_binance_token": list_token_rsi_oversold})
         if len(list_token_rsi_overbought) > 0:
-            data.append({"rsi_overbought_binance_token": list_token_rsi_oversold})
+            data.append({"rsi_overbought_binance_token": list_token_rsi_overbought})
 
         if len(data) > 0:
             Common.create_json_file(data, etl_path, "rsi_{}_binance_token".format(self.interval))

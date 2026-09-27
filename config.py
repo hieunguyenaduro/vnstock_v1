@@ -51,3 +51,8 @@ class Config:
     # Corrected indentation, capitalization, and added environment variable support
     API_KEY = os.getenv("VNSTOCK_API_KEY", "vnstock_366108191e0a3190950b24d2a04fe157")
     API_KEY_twelvedata = os.getenv("twelvedata", "1652ed6172c64a948342413ca45a8ca3")
+
+    # off feature downtrend
+    is_downtrend_off = True
+    # off feature uptrend
+    is_uptrend_off = False

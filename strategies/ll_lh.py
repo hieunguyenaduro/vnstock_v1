@@ -82,13 +82,13 @@ class LlLh:
                                                     end_date=self.execution_date)
 
             self.ll_lh(df, ticket, list_ticker_downtrend)
-        
+
         if len(list_ticker_downtrend) > 0:
             data.append({"hh_hl": list_ticker_downtrend})
 
         if len(data) > 0:
             Common.create_json_file(data, etl_path, "ll_hh_vn_stock")
-    
+
     def us_stock(self):
         list_ticker_downtrend = []
         data = []
@@ -117,18 +117,20 @@ class LlLh:
 
         if len(data) > 0:
             Common.create_json_file(data, etl_path, "ll_hh_binance_token")
-            
+
     def main(self):
+        if not Config.is_downtrend_off:
+            start_time = time.perf_counter()
 
-        start_time = time.perf_counter()
+            self.vn_stock()
+            self.us_stock()
+            self.binance_token()
 
-        self.vn_stock()
-        self.us_stock()
-        self.binance_token()
-
-        end_time = time.perf_counter()
-        execution_time = end_time - start_time
-        print(f'"execution_time": {execution_time:.2f}')
+            end_time = time.perf_counter()
+            execution_time = end_time - start_time
+            print(f'"execution_time": {execution_time:.2f}')
+        else:
+            print("downtrend feature is off ")
 
 
 if __name__ == '__main__':

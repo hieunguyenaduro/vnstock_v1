@@ -111,15 +111,18 @@ class HhHl:
 
     def main(self):
 
-        start_time = time.perf_counter()
+        if not Config.is_uptrend_off:
+            start_time = time.perf_counter()
 
-        self.vn_stock()
-        self.us_stock()
-        self.binance_token()
+            self.vn_stock()
+            self.us_stock()
+            self.binance_token()
 
-        end_time = time.perf_counter()
-        execution_time = end_time - start_time
-        print(f'"execution_time": {execution_time:.2f}')
+            end_time = time.perf_counter()
+            execution_time = end_time - start_time
+            print(f'"execution_time": {execution_time:.2f}')
+        else:
+            print("uptrend feature is off ")
 
 
 if __name__ == '__main__':
