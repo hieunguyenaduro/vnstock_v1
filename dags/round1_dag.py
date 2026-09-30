@@ -41,7 +41,7 @@ with DAG(
     )
 
     # 3. Parallel Execution -> Trigger (Including t6/SMA)
-    [t1, t5] >> t6 >> trigger_next_dag
+    t1 >> t2 >> t3 >> t4 >> t5 >> t6
 
 if __name__ == "__main__":
     dag.test(logical_date=datetime(2026, 5, 11, tzinfo=timezone.utc))

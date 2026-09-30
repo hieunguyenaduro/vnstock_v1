@@ -40,7 +40,7 @@ class RSIOverSold:
             data.append({"rsi_overbought_us_stock": list_us_stock_rsi_overbought})
 
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "rsi_us_stock")
+            Common.create_json_file(data, etl_path, "rsi_{}_us_stock".format(interval))
 
     def binance_token(self):
         list_token_rsi_oversold = []

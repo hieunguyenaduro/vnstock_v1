@@ -22,7 +22,7 @@ class FetchUsStockData:
         }
 
         try:
-            response = requests.get(self.base_url_rsi, params=params, timeout=10)
+            response = requests.get(self.base_url_rsi, params=params, timeout=30)
             response.raise_for_status()
             data = response.json()
             time.sleep(8)
@@ -50,7 +50,7 @@ class FetchUsStockData:
         }
 
         try:
-            response = requests.get(self.base_url_sma, params=params, timeout=10)
+            response = requests.get(self.base_url_sma, params=params, timeout=30)
             response.raise_for_status()
             data = response.json()
             time.sleep(8)
@@ -78,7 +78,7 @@ class FetchUsStockData:
         }
 
         try:
-            response = requests.get(self.base_url_sma, params=params, timeout=10)
+            response = requests.get(self.base_url_sma, params=params, timeout=30)
             response.raise_for_status()
             data = response.json()
             time.sleep(8)
@@ -170,7 +170,7 @@ class FetchUsStockData:
         }
 
         try:
-            response = requests.get(self.base_url_time_series, params=params, timeout=10)
+            response = requests.get(self.base_url_time_series, params=params, timeout=30)
             data = response.json()
 
             values = data.get("values", [])

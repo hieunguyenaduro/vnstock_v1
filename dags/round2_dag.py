@@ -26,6 +26,9 @@ with DAG(
     t1 = PythonOperator(
         task_id="RSI_Oversold",
         python_callable=rsi_oversold.python_operator_run,
+        op_kwargs={
+            "interval": "1h"
+        },
     )
 
 if __name__ == "__main__":
