@@ -19,7 +19,6 @@ class RSIOverSold:
     def us_stock(self):
         list_ticker_rsi_oversold = []
         list_us_stock_rsi_overbought = []
-        data = []
 
         if self.interval == "1d":
             interval = "1day"
@@ -33,20 +32,18 @@ class RSIOverSold:
             if latest_rsi is not None and latest_rsi >= 67:
                 list_us_stock_rsi_overbought.append(ticket)
 
+        if list_ticker_rsi_oversold:
+            data = [{"us_stock_rsi_oversold": list_ticker_rsi_oversold}]
+            Common.create_json_file(data, etl_path, "us_stock_rsi_oversold")
+        if list_us_stock_rsi_overbought:
+            data = [{"us_stock_rsi_overbought": list_us_stock_rsi_overbought}]
+            Common.create_json_file(data, etl_path, "us_stock_rsi_overbought")
 
-        if len(list_ticker_rsi_oversold) > 0:
-            data.append({"rsi_oversold_us_stock": list_ticker_rsi_oversold})
-        if len(list_us_stock_rsi_overbought) > 0:
-            data.append({"rsi_overbought_us_stock": list_us_stock_rsi_overbought})
-
-        if len(data) > 0:
-            Common.create_json_file(data, etl_path, "rsi_{}_us_stock".format(interval))
 
     def binance_token(self):
         list_token_rsi_oversold = []
         list_token_rsi_overbought = []
 
-        data = []
         for token in Config.TOKENS:
             df = self.fetcher_binance_data.get_binance_data(token=token, timeframe=self.interval)
             latest_rsi = df[['timestamp', 'close', 'RSI']].tail()
@@ -56,13 +53,12 @@ class RSIOverSold:
             if latest_rsi is not None and latest_rsi >= 67:
                 list_token_rsi_overbought.append(token)
 
-        if len(list_token_rsi_oversold) > 0:
-            data.append({"rsi_oversold_binance_token": list_token_rsi_oversold})
-        if len(list_token_rsi_overbought) > 0:
-            data.append({"rsi_overbought_binance_token": list_token_rsi_overbought})
-
-        if len(data) > 0:
-            Common.create_json_file(data, etl_path, "rsi_{}_binance_token".format(self.interval))
+        if list_token_rsi_oversold:
+            data = [{"binance_token_rsi_oversold": list_token_rsi_oversold}]
+            Common.create_json_file(data, etl_path, "binance_token_rsi_oversold")
+        if list_token_rsi_overbought:
+            data = [{"binance_token_rsi_overbought": list_token_rsi_overbought}]
+            Common.create_json_file(data, etl_path, "binance_token_rsi_overbought")
 
     def main(self):
         start_time = time.perf_counter()

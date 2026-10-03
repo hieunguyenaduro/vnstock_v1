@@ -102,9 +102,9 @@ class WaveUp:
             if percentage_wave:
                 list_ticker_20_percent.append(ticket)
 
-        data.append({"percentage_wave": list_ticker_20_percent})
+        data.append({"vn_stock_wave_up": list_ticker_20_percent})
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "wave_up_vn_stock")
+            Common.create_json_file(data, etl_path, "vn_stock_wave_up")
 
     def binance_token(self):
         data = []
@@ -118,7 +118,7 @@ class WaveUp:
 
         data.append({"percentage_wave": list_ticker_20_percent})
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "wave_up_binance_token")
+            Common.create_json_file(data, etl_path, "binance_token_wave_up")
 
     def us_stock(self):
         data = []
@@ -132,7 +132,7 @@ class WaveUp:
 
         data.append({"percentage_wave": list_ticker_20_percent})
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "wave_up_us_stock")
+            Common.create_json_file(data, etl_path, "us_stock_wave_up")
 
     def main(self):
         if not Config.is_uptrend_off:

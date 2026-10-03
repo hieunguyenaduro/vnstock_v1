@@ -75,10 +75,10 @@ class HhHl:
             self.hh_hl(df, list_ticker_uptrend, ticket)
 
         if len(list_ticker_uptrend) > 0:
-            data.append({"hh_hl": list_ticker_uptrend})
+            data.append({"stock_hh_hl": list_ticker_uptrend})
 
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "hh_hl_vn_stock")
+            Common.create_json_file(data, etl_path, "vn-stock_hh_hl")
 
     def us_stock(self):
         list_ticker_uptrend = []
@@ -90,10 +90,10 @@ class HhHl:
             self.hh_hl(df, list_ticker_uptrend, ticket)
 
         if len(list_ticker_uptrend) > 0:
-            data.append({"hh_hl": list_ticker_uptrend})
+            data.append({"hh_hl_us": list_ticker_uptrend})
 
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "hh_hl_us_stock")
+            Common.create_json_file(data, etl_path, "us_stock_hh_hl")
 
     def binance_token(self):
         list_ticker_uptrend = []
@@ -104,10 +104,10 @@ class HhHl:
             self.hh_hl(df, list_ticker_uptrend, token)
 
         if len(list_ticker_uptrend) > 0:
-            data.append({"hh_hl": list_ticker_uptrend})
+            data.append({"hh_hl_binance_token": list_ticker_uptrend})
 
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "hh_hl_binance_token")
+            Common.create_json_file(data, etl_path, "binance_token_hh_hl")
 
     def main(self):
 

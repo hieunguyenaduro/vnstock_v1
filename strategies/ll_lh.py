@@ -84,10 +84,10 @@ class LlLh:
             self.ll_lh(df, ticket, list_ticker_downtrend)
 
         if len(list_ticker_downtrend) > 0:
-            data.append({"hh_hl": list_ticker_downtrend})
+            data.append({"vn_stock_ll_hh": list_ticker_downtrend})
 
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "ll_hh_vn_stock")
+            Common.create_json_file(data, etl_path, "vn_stock_ll_hh")
 
     def us_stock(self):
         list_ticker_downtrend = []
@@ -99,10 +99,10 @@ class LlLh:
             self.ll_lh(df, ticket, list_ticker_downtrend)
 
         if len(list_ticker_downtrend) > 0:
-            data.append({"hh_hl": list_ticker_downtrend})
+            data.append({"us_stock_ll_hh": list_ticker_downtrend})
 
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "ll_hh_us_stock")
+            Common.create_json_file(data, etl_path, "us_stock_ll_hh")
 
     def binance_token(self):
         list_ticker_downtrend = []
@@ -113,10 +113,10 @@ class LlLh:
             self.ll_lh(df, token, list_ticker_downtrend)
 
         if len(list_ticker_downtrend) > 0:
-            data.append({"hh_hl": list_ticker_downtrend})
+            data.append({"binance_token_ll_hh": list_ticker_downtrend})
 
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "ll_hh_binance_token")
+            Common.create_json_file(data, etl_path, "binance_token_ll_hh")
 
     def main(self):
         if not Config.is_downtrend_off:

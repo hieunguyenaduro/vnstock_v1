@@ -98,9 +98,9 @@ class WaveDown:
             if percentage_wave:
                 list_ticker_20_percent.append(ticket)
 
-        data.append({"percentage_wave": list_ticker_20_percent})
+        data.append({"vn_stock_wave_down": list_ticker_20_percent})
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "wave_down_vn_stock")
+            Common.create_json_file(data, etl_path, "vn_stock_wave_down")
 
     def binance_token(self):
         data = []
@@ -112,9 +112,9 @@ class WaveDown:
             if percentage_wave:
                 list_ticker_20_percent.append(token)
 
-        data.append({"percentage_wave": list_ticker_20_percent})
+        data.append({"binance_token_wave_down": list_ticker_20_percent})
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "wave_down_binance_token")
+            Common.create_json_file(data, etl_path, "binance_token_wave_down")
 
     def us_stock(self):
         data = []
@@ -126,9 +126,9 @@ class WaveDown:
             if percentage_wave:
                 list_ticker_20_percent.append(ticket)
 
-        data.append({"percentage_wave": list_ticker_20_percent})
+        data.append({"us_stock_wave_down": list_ticker_20_percent})
         if len(data) > 0:
-            Common.create_json_file(data, etl_path, "wave_down_us_stock")
+            Common.create_json_file(data, etl_path, "us_stock_wave_down")
 
     def main(self):
         if not Config.is_downtrend_off:

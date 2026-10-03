@@ -10,6 +10,15 @@
             mục tiêu là kiếm chiến lược polarity ( vượt kháng cự và backtest)
             """
 
+
+"""
+           giá nằm trên ma200
+
+           rsi quá ban 4h ~~ 32
+
+            kiểu : cool off rsi kết hợp với shakeout trước khi bay lên trời. ck vn có PET 2026-09-20
+            """
+
 import time
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -39,9 +48,12 @@ class SMA:
     def us_stock(self):
         list_ticker_sma = []
         list_ticker_polarity = []
+        list_ticker_094h = []
 
         for ticker in Config.US_TICKERS:
             current_stock_price, sma50, sma200 = self.fetcher_us_data.get_stock_data_from_timeseries(ticker=ticker)
+
+            rsi_4h = self.fetcher_us_data.get_us_stock_rsi(ticker=ticker, interval=self.interval)
 
             if None not in (current_stock_price, sma50, sma200):
                 if sma200 >= current_stock_price >= sma50:
@@ -56,19 +68,29 @@ class SMA:
                 if is_above_sma50 and is_above_sma200:
                     list_ticker_polarity.append(ticker)
 
+            if None not in (current_stock_price, rsi_4h, sma200):
+                if current_stock_price >= sma200 and rsi_4h <= 32:
+                    list_ticker_094h.append(ticker)
+
         if list_ticker_sma:
-            data = [{"list_ticker_sma": list_ticker_sma}]
+            data = [{"us_stock_sma": list_ticker_sma}]
             Common.create_json_file(data, etl_path, "us_stock_sma")
         if list_ticker_polarity:
-            data = [{"list_ticker_polarity": list_ticker_sma}]
+            data = [{"us_stock_polarity": list_ticker_polarity}]
             Common.create_json_file(data, etl_path, "us_stock_polarity")
+        if list_ticker_094h:
+            data = [{"us_stock_094h": list_ticker_094h}]
+            Common.create_json_file(data, etl_path, "us_stock_094h")
 
     def binance_token(self):
         list_token_sma = []
         list_token_polarity = []
+        list_token_094h=[]
 
         for token in Config.TOKENS:
             current_price, sma50, sma200 = self.fetcher_binance_data.get_binance_from_timeseries(token=token)
+
+            rsi_4h = self.fetcher_binance_data.get_binance_data(token=token, timeframe=self.interval)
 
             if None not in (current_price, sma50, sma200):
                 if sma200 >= current_price >= sma50:
@@ -82,12 +104,19 @@ class SMA:
                 if is_above_sma50 and is_above_sma200:
                     list_token_polarity.append(token)
 
+            if None not in (current_price, rsi_4h, sma200):
+                if current_price >= sma200 and rsi_4h <= 32:
+                    list_token_094h.append(token)
+
         if list_token_sma:
-            data = [{"list_token_sma": list_token_sma}]
-            Common.create_json_file(data, etl_path, "token_sma")
+            data = [{"binance_token_sma": list_token_sma}]
+            Common.create_json_file(data, etl_path, "binance_token_sma")
         if list_token_polarity:
-            data = [{"list_token_polarity": list_token_polarity}]
-            Common.create_json_file(data, etl_path, "token_polarity")
+            data = [{"binance_token_polarity": list_token_polarity}]
+            Common.create_json_file(data, etl_path, "binance_token_polarity")
+        if list_token_094h:
+            data = [{"binance_token_094h": list_token_094h}]
+            Common.create_json_file(data, etl_path, "binance_token_094h")
 
     def main(self):
         start_time = time.perf_counter()
