@@ -12,3 +12,10 @@ class Common:
 
         with open(filename, "w", encoding="utf-8") as json_file:
             json.dump(data, json_file, ensure_ascii=False, indent=4)
+
+    @staticmethod
+    def get_data_from_file(file_path, list_tickers):
+        with open(file_path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+
+        return data[0][list_tickers]

@@ -116,7 +116,7 @@ class WaveUp:
             if percentage_wave:
                 list_ticker_20_percent.append(token)
 
-        data.append({"percentage_wave": list_ticker_20_percent})
+        data.append({"binance_token_wave_up": list_ticker_20_percent})
         if len(data) > 0:
             Common.create_json_file(data, etl_path, "binance_token_wave_up")
 
@@ -130,7 +130,7 @@ class WaveUp:
             if percentage_wave:
                 list_ticker_20_percent.append(ticket)
 
-        data.append({"percentage_wave": list_ticker_20_percent})
+        data.append({"us_stock_wave_up": list_ticker_20_percent})
         if len(data) > 0:
             Common.create_json_file(data, etl_path, "us_stock_wave_up")
 
