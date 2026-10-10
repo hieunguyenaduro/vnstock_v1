@@ -11,6 +11,8 @@ from strategies.hh_hl import HhHl
 from strategies.ll_lh import LlLh
 from strategies.wave_down import WaveDown
 from strategies.wave_up import WaveUp
+from config import Config
+from utils.common import Common
 from utils.fetch_binance_data import compute_rsi
 from utils.fetch_data import FetchData
 from utils.fetch_us_stock_data import FetchUsStockData
@@ -121,6 +123,34 @@ def test_rsi_matches_pandas_ta_reference():
     want = pandas_ta.rsi(close, length=14)
     assert got.iloc[:14].isna().all()  # warmup chưa đủ 14 nến
     pd.testing.assert_series_equal(got.iloc[14:], want.iloc[14:], check_names=False)
+
+
+def test_sma_cooloff_uses_4h_rsi(tmp_path, monkeypatch):
+    from strategies.sma import RSI_INTERVAL, SMA
+
+    assert RSI_INTERVAL == "4h"
+
+    class FakeUsFetcher:
+        def __init__(self):
+            self.rsi_intervals = []
+
+        def get_stock_data_from_timeseries(self, ticker, interval="1day"):
+            return (100.0, 90.0, 80.0)  # giá trên sma200
+
+        def get_us_stock_rsi(self, ticker, interval="1day"):
+            self.rsi_intervals.append(interval)
+            return 30.0  # quá bán (<=32)
+
+    monkeypatch.setattr(Config, "US_TICKERS", ["FAKE"])
+    s = SMA()
+    s.etl_path = str(tmp_path)
+    fake = FakeUsFetcher()
+    s.fetcher_us_data = fake
+    s.us_stock()
+
+    assert fake.rsi_intervals == ["4h"]
+    assert Common.get_data_from_file(
+        str(tmp_path / "data" / "us_stock_094h.json"), "us_stock_094h") == ["FAKE"]
 
 
 def test_fetch_data_rejects_unknown_timeframe():

@@ -26,16 +26,18 @@ from utils.fetch_binance_data import FetchBinanceData
 from utils.fetch_us_stock_data import FetchUsStockData
 
 RSI_COOLOFF = 32
+# RSI cool-off LUÔN chạy khung 4h: giá (SMA daily) nằm trên sma200 nhưng RSI 4h
+# quá bán = nhịp cool-off/shakeout trước khi bay. Không dùng self.interval.
+RSI_INTERVAL = "4h"
 POLARITY_RATIO = 1.15
 
 
 class SMA(BaseStrategy):
 
-    def __init__(self, interval):
+    def __init__(self):
         super().__init__(name="sma")
         self.fetcher_us_data = FetchUsStockData()
         self.fetcher_binance_data = FetchBinanceData()
-        self.interval = interval
 
     @staticmethod
     def _classify(price, sma50, sma200, rsi, sma_out, polarity_out, cooloff_out, label):
@@ -66,7 +68,7 @@ class SMA(BaseStrategy):
                 continue
             price, sma50, sma200 = unpacked
             rsi = self.safe_call(self.fetcher_us_data.get_us_stock_rsi, ticker,
-                                 interval=self.interval)
+                                 interval=RSI_INTERVAL)
             self._classify(price, sma50, sma200, rsi,
                            sma_list, polarity_list, cooloff_list, ticker)
 
@@ -84,7 +86,7 @@ class SMA(BaseStrategy):
                 continue
             price, sma50, sma200 = unpacked
             df = self.safe_call(self.fetcher_binance_data.get_binance_data, token,
-                                timeframe=self.interval)
+                                timeframe=RSI_INTERVAL)
             rsi = latest_rsi_from_df(df)
             self._classify(price, sma50, sma200, rsi,
                            sma_list, polarity_list, cooloff_list, token)
@@ -98,9 +100,8 @@ class SMA(BaseStrategy):
 
 
 if __name__ == '__main__':
-    SMA(interval='1d').main()
+    SMA().main()
 
 
 def python_operator_run(**kwargs):
-    interval = kwargs.get("interval") or kwargs.get("op_kwargs", {}).get("interval")
-    SMA(interval=interval if interval else "1d").main()
+    SMA().main()
