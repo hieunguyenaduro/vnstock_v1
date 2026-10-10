@@ -26,10 +26,8 @@ class RSIOverSold(BaseStrategy):
         self.interval = interval
 
     def us_stock(self):
-        if self.interval == "1d":
-            interval = "1day"
-        else:
-            interval = self.interval
+        # Fetcher tự chuẩn hóa interval về chuẩn TwelveData (1d -> 1day, ...)
+        interval = self.interval
 
         oversold, overbought = [], []
         for ticket in Config.US_TICKERS:

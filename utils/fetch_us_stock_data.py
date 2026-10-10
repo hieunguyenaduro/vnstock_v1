@@ -10,6 +10,21 @@ logger = logging.getLogger(__name__)
 
 class FetchUsStockData:
 
+    # TwelveData chỉ nhận: 1min/5min/15min/30min/45min/1h/2h/4h/8h/1day/1week/1month.
+    # Map các alias kiểu yfinance (1d/1w/15m/...) về đúng chuẩn TwelveData.
+    INTERVAL_ALIASES = {
+        "1m": "1min",
+        "5m": "5min",
+        "15m": "15min",
+        "30m": "30min",
+        "45m": "45min",
+        "1d": "1day",
+        "1D": "1day",
+        "1w": "1week",
+        "1W": "1week",
+        "1M": "1month",
+    }
+
     def __init__(self):
         # Ưu tiên tên mới TWELVEDATA_API_KEY, fallback alias cũ để tương thích
         self.api_key = getattr(config.Config, "TWELVEDATA_API_KEY", "") or getattr(
@@ -19,7 +34,13 @@ class FetchUsStockData:
         self.base_url_sma = "https://api.twelvedata.com/sma"
         self.base_url_time_series = "https://api.twelvedata.com/time_series"
 
+    @staticmethod
+    def normalize_interval(interval: str) -> str:
+        """Chuẩn hóa interval về đúng chuẩn TwelveData. Giá trị đã đúng thì giữ nguyên."""
+        return FetchUsStockData.INTERVAL_ALIASES.get(interval, interval)
+
     def get_us_stock_rsi(self, ticker: str, interval: str = "1day"):
+        interval = self.normalize_interval(interval)
         params = {
             "symbol": ticker,
             "interval": interval,
@@ -48,6 +69,7 @@ class FetchUsStockData:
             return None
 
     def get_us_stock_ma50(self, ticker: str, interval: str = "1day"):
+        interval = self.normalize_interval(interval)
         params = {
             "symbol": ticker,
             "interval": interval,
@@ -76,6 +98,7 @@ class FetchUsStockData:
             return None
 
     def get_us_stock_ma200(self, ticker: str, interval: str = "1day"):
+        interval = self.normalize_interval(interval)
         params = {
             "symbol": ticker,
             "interval": interval,
@@ -172,6 +195,7 @@ class FetchUsStockData:
         return current_price
 
     def get_stock_data_from_timeseries(self, ticker, interval: str = "1day"):
+        interval = self.normalize_interval(interval)
         params = {
             "symbol": ticker,
             "interval": interval,

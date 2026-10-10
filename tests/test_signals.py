@@ -12,6 +12,7 @@ from strategies.ll_lh import LlLh
 from strategies.wave_down import WaveDown
 from strategies.wave_up import WaveUp
 from utils.fetch_data import FetchData
+from utils.fetch_us_stock_data import FetchUsStockData
 
 # Chuỗi tăng cầu thang: đỉnh/đáy đều cao dần, find_peaks(distance=5) bắt được
 UPTREND = [10, 11, 12, 13, 14, 15, 14, 13, 14, 15, 16, 17, 16, 15, 16, 17, 18,
@@ -102,6 +103,20 @@ def test_fetch_data_rejects_unknown_timeframe():
         FetchData.fetch_data_for_ticker(
             ticker="VIC", timeframe="9Z", start_date="2024-01-01", end_date="2024-02-01"
         )
+
+
+def test_normalize_twelvedata_interval():
+    # TwelveData chỉ nhận 1day/1week/1month/5min..., không nhận kiểu yfinance 1d/1w/15m
+    norm = FetchUsStockData.normalize_interval
+    assert norm("1d") == "1day"
+    assert norm("1D") == "1day"
+    assert norm("1day") == "1day"
+    assert norm("1h") == "1h"
+    assert norm("4h") == "4h"
+    assert norm("15m") == "15min"
+    assert norm("5m") == "5min"
+    assert norm("1w") == "1week"
+    assert norm("1M") == "1month"
 
 
 def test_base_strategy_saves_empty_list(tmp_path):
