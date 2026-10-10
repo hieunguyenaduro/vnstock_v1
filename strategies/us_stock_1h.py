@@ -8,7 +8,7 @@ from utiils.fetch_binance_data import FetchBinanceData
 etl_path = str(Path(__file__).resolve().parents[1])
 
 
-class RSIOverSold1h:
+class UsStock091h:
 
     def __init__(self, interval):
         self.fetcher_us_data = FetchUsStockData()
@@ -50,7 +50,7 @@ class RSIOverSold1h:
 
 
 if __name__ == '__main__':
-    RSIOverSold1h(interval='1h').main()
+    UsStock091h(interval='1h').main()
 """
     - interval: ('5m', '15m', '1h', '1d'...)
 """
@@ -58,4 +58,4 @@ if __name__ == '__main__':
 
 def python_operator_run(**kwargs):
     interval = kwargs.get("interval") or kwargs.get("op_kwargs", {}).get("interval")
-    RSIOverSold1h(interval=interval if interval else "1h").main()
+    UsStock091h(interval=interval if interval else "1h").main()

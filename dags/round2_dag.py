@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
-from strategies import rsi_oversold
+from strategies import binance_token_1h, us_stock_1h
 
 default_args = {
     "depends_on_past": False,
@@ -25,11 +25,20 @@ with DAG(
 
     t1 = PythonOperator(
         task_id="RSI_Oversold",
-        python_callable=rsi_oversold.python_operator_run,
+        python_callable=binance_token_1h.python_operator_run,
+        op_kwargs={
+            "interval": "1h"
+        },
+    ),
+
+    t2 = PythonOperator(
+        task_id="RSI_Oversold",
+        python_callable=us_stock_1h.python_operator_run,
         op_kwargs={
             "interval": "1h"
         },
     )
+    t1 >> t2
 
 if __name__ == "__main__":
     dag.test(logical_date=datetime(2026, 5, 11, tzinfo=timezone.utc))
