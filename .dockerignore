@@ -1,0 +1,14 @@
+venv_glue_framew/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+.idea/
+.vscode/
+# Secrets máy host không bao giờ vào image (compose truyền qua env_file)
+.env
+.env.uat
+.env.dev
+*.log
+.pytest_cache/

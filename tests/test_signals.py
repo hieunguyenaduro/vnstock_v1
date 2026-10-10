@@ -11,6 +11,7 @@ from strategies.hh_hl import HhHl
 from strategies.ll_lh import LlLh
 from strategies.wave_down import WaveDown
 from strategies.wave_up import WaveUp
+from utils.fetch_binance_data import compute_rsi
 from utils.fetch_data import FetchData
 from utils.fetch_us_stock_data import FetchUsStockData
 
@@ -96,6 +97,30 @@ def test_zigzag_guards_divide_by_zero():
     # Giá pivot = 0 không được gây ZeroDivision/Warning, vẫn trả pivots hợp lệ
     pivots = WaveUp.identify_zigzag_waves(make_df([0.0, 0.0, 10.0, 12.0]))
     assert isinstance(pivots, list) and len(pivots) >= 2
+
+
+def test_rsi_wilder_direction():
+    rising = pd.Series(np.linspace(100, 140, 50))
+    falling = pd.Series(np.linspace(140, 100, 50))
+    assert compute_rsi(rising, period=14).dropna().iloc[-1] > 70
+    assert compute_rsi(falling, period=14).dropna().iloc[-1] < 30
+
+
+def test_rsi_wilder_flat_is_undefined():
+    flat = pd.Series([100.0] * 50)
+    assert compute_rsi(flat, period=14).isna().all()
+
+
+def test_rsi_matches_pandas_ta_reference():
+    # Chuẩn Wilder có nhiều cách seed warmup; quan trọng là giá trị ổn định
+    # sau warmup phải khớp reference trong sai số float.
+    pandas_ta = pytest.importorskip("pandas_ta")
+    rng = np.random.default_rng(42)
+    close = pd.Series(100 + np.cumsum(rng.normal(0, 1, 200)))
+    got = compute_rsi(close, period=14)
+    want = pandas_ta.rsi(close, length=14)
+    assert got.iloc[:14].isna().all()  # warmup chưa đủ 14 nến
+    pd.testing.assert_series_equal(got.iloc[14:], want.iloc[14:], check_names=False)
 
 
 def test_fetch_data_rejects_unknown_timeframe():

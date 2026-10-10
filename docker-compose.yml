@@ -1,0 +1,38 @@
+name: vnstock_v1
+
+services:
+  airflow:
+    build: .
+    # All-in-one: webserver + scheduler + triggerer, tự init DB sqlite
+    command: ["airflow", "standalone"]
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /app
+      AIRFLOW__CORE__DAGS_FOLDER: /app/dags
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+    volumes:
+      # Giữ JSON tín hiệu + DB airflow khi restart container
+      - ./data:/app/data
+      - airflow-db:/opt/airflow
+
+  ui:
+    build: .
+    command: ["python", "ui/app.py"]
+    ports:
+      - "7860:7860"
+    env_file:
+      - .env
+    environment:
+      VNSTOCK_DATA_DIR: /app/data
+      AIRFLOW_URL: http://airflow:8080/api/v1
+      GRADIO_HOST: "0.0.0.0"
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - airflow
+
+volumes:
+  airflow-db:

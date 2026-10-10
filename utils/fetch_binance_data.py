@@ -2,9 +2,23 @@ import logging
 
 import ccxt
 import pandas as pd
-import pandas_ta as ta
 
 logger = logging.getLogger(__name__)
+
+
+def compute_rsi(close: pd.Series, period: int = 14) -> pd.Series:
+    """RSI Wilder bằng pandas thuần (thay pandas_ta đã ngừng bảo trì).
+
+    Chuẩn Wilder: trung bình EMA (alpha=1/period) của gain/loss.
+    period nến đầu là NaN; giá đi ngang tuyệt đối cho NaN (không xác định).
+    """
+    delta = close.diff()
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+    avg_gain = gain.ewm(alpha=1.0 / period, min_periods=period, adjust=False).mean()
+    avg_loss = loss.ewm(alpha=1.0 / period, min_periods=period, adjust=False).mean()
+    rs = avg_gain / avg_loss
+    return 100.0 - (100.0 / (1.0 + rs))
 
 
 class FetchBinanceData:
@@ -24,8 +38,8 @@ class FetchBinanceData:
         df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
 
-        # Calculate RSI
-        df['RSI'] = ta.rsi(df['close'], length=period)
+        # Calculate RSI (Wilder)
+        df['RSI'] = compute_rsi(df['close'], period=period)
 
         return df
 
