@@ -1,30 +1,45 @@
+"""VN Stock Screener — hiển thị tín hiệu kỹ thuật từ data/*.json theo 3 thị trường."""
+
+import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import gradio as gr
-import json, requests
+import requests
 
-AIRFLOW_URL = "http://localhost:8080/api/v1"
-AIRFLOW_AUTH = ("airflow", "airflow")
+from ui.loader import MARKETS, discover_signals, summarize_market
 
-def load_signals():
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DATA_DIR = os.getenv("VNSTOCK_DATA_DIR", str(REPO_ROOT / "data"))
+AIRFLOW_URL = os.getenv("AIRFLOW_URL", "http://localhost:8080/api/v1")
+AIRFLOW_AUTH = (os.getenv("AIRFLOW_USER", "airflow"), os.getenv("AIRFLOW_PASS", "airflow"))
+
+SUMMARY_HEADERS = ["Ticker", "Số tín hiệu", "Các tín hiệu"]
+DETAIL_HEADERS = ["Tín hiệu", "Số mã", "Các mã"]
+
+
+def load_market(market_key):
+    """Đọc tín hiệu 1 thị trường -> (summary, detail, trạng thái). Không bao giờ raise."""
     try:
-        with open("data/output/final_signals.json") as f:
-            data = json.load(f)
-        signals = data["signals"]
-        rows = []
-        for s in signals:
-            conf = s.get("confirmations", {})
-            row = [
-                s["ticker"],
-                "🟢 Long" if s.get("signal_type","long") == "long" else "🔴 Short",
-                s["total_score"],
-                "✅" if conf.get("HH_HL_1D") else "—",
-                "✅" if conf.get("RSI_1D_4H") else "—",
-                "✅" if conf.get("RSI_1H_confirm") else "—",
-            ]
-            rows.append(row)
-        gen_at = data.get("generated_at","")
-        return rows, f"Cập nhật lúc: {gen_at}"
-    except Exception as e:
-        return [], f"Lỗi: {e}"
+        _title, prefix = MARKETS[market_key]
+        signals = discover_signals(DATA_DIR)
+        summary, detail, updated = summarize_market(signals, DATA_DIR, prefix)
+        status = f"Cập nhật lúc: {updated}" if updated else "Chưa có dữ liệu — hãy chạy pipeline."
+        return summary, detail, status
+    except Exception as exc:
+        return [], [], f"Lỗi: {exc}"
+
+
+def load_all():
+    """Gom dữ liệu cả 3 thị trường cho nút Refresh và lần load đầu."""
+    outputs = []
+    for market_key in MARKETS:
+        summary, detail, status = load_market(market_key)
+        outputs.extend([summary, detail, status])
+    return outputs
+
 
 def trigger_pipeline():
     try:
@@ -43,30 +58,43 @@ def trigger_pipeline():
     except Exception as e:
         return f"❌ Lỗi trigger: {e}"
 
+
 with gr.Blocks(title="VN Stock Screener") as app:
     gr.Markdown("## 🇻🇳 VN Stock Screener — Tín hiệu kỹ thuật tự động")
 
     with gr.Row():
         refresh_btn = gr.Button("🔄 Refresh dữ liệu", variant="secondary")
-        run_btn     = gr.Button("▶ Chạy Pipeline ngay", variant="primary")
+        run_btn = gr.Button("▶ Chạy Pipeline ngay", variant="primary")
 
     status_box = gr.Textbox(label="Trạng thái", interactive=False)
 
+    tab_outputs = []
     with gr.Tabs():
-        with gr.Tab("📊 Tất cả tín hiệu"):
-            table = gr.Dataframe(
-                headers=["Ticker","Signal","Score","HH/HL 1D","RSI 4H/1D","RSI 1H"],
-                datatype=["str","str","number","str","str","str"],
-                interactive=False,
-            )
-            update_time = gr.Textbox(label="", interactive=False)
+        for market_key, (title, _prefix) in MARKETS.items():
+            with gr.Tab(title):
+                summary_table = gr.Dataframe(
+                    headers=SUMMARY_HEADERS,
+                    datatype=["str", "number", "str"],
+                    interactive=False,
+                    label="Tổng hợp theo mã",
+                )
+                detail_table = gr.Dataframe(
+                    headers=DETAIL_HEADERS,
+                    datatype=["str", "number", "str"],
+                    interactive=False,
+                    label="Chi tiết từng tín hiệu",
+                )
+                update_box = gr.Textbox(label="", interactive=False)
+                tab_outputs.extend([summary_table, detail_table, update_box])
 
     def on_refresh():
-        rows, ts = load_signals()
-        return rows, ts, "✅ Đã load dữ liệu mới nhất"
+        tables = load_all()
+        return tables + ["✅ Đã load dữ liệu mới nhất"]
 
-    refresh_btn.click(on_refresh, outputs=[table, update_time, status_box])
+    refresh_btn.click(on_refresh, outputs=tab_outputs + [status_box])
     run_btn.click(trigger_pipeline, outputs=[status_box])
-    app.load(on_refresh, outputs=[table, update_time, status_box])
+    app.load(load_all, outputs=tab_outputs)
 
-app.launch(server_port=7860)
+
+if __name__ == "__main__":
+    app.launch(server_port=int(os.getenv("GRADIO_PORT", "7860")))
