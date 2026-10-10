@@ -1,6 +1,10 @@
+import logging
+
 import ccxt
 import pandas as pd
 import pandas_ta as ta
+
+logger = logging.getLogger(__name__)
 
 
 class FetchBinanceData:
@@ -39,16 +43,16 @@ class FetchBinanceData:
                 matched_symbols.remove(item)
 
         if matched_symbols:
-            print(f" us stock {target_symbol} on Binance Exchange:", matched_symbols)
+            logger.info("us stock %s on Binance Exchange: %s", target_symbol, matched_symbols)
         else:
-            print(f"not found {target_symbol} on Binance Exchange.")
+            logger.warning("not found %s on Binance Exchange.", target_symbol)
 
         return matched_symbols
 
     def get_current_token_price(self, token):
         ticker = self.exchange.fetch_ticker(token)
         current_price = ticker['last']
-        print(f"Current {token} price on Binance: ${current_price:,.2f}")
+        logger.info("Current %s price on Binance: $%s", token, f"{current_price:,.2f}")
 
         return current_price
 
@@ -59,7 +63,7 @@ class FetchBinanceData:
             ohlcv = self.exchange.fetch_ohlcv(token, timeframe, limit=200)
 
             if not ohlcv or len(ohlcv) < 200:
-                print(f"⚠️ not enough candles for {token}: got {len(ohlcv) if ohlcv else 0}")
+                logger.warning("not enough candles for %s: got %s", token, len(ohlcv) if ohlcv else 0)
                 return None, None, None
 
             close_prices = [float(candle[4]) for candle in ohlcv]
@@ -70,20 +74,17 @@ class FetchBinanceData:
             sma_50 = sum(close_prices[-50:]) / 50
             sma_200 = sum(close_prices[-200:]) / 200
 
-            print(f"SMA 50:  ${sma_50:,.2f}")
-            print(f"SMA 200: ${sma_200:,.2f}")
-
             # check values from api's response
             if sma_50 > 0 and sma_200 > 0:
-                print(f"current sma50 of {token} ({timeframe}) is : {sma_50:.2f}")
-                print(f"current sma200 of {token} ({timeframe}) is : {sma_200:.2f}")
+                logger.info("current sma50 of %s (%s) is : %.2f", token, timeframe, sma_50)
+                logger.info("current sma200 of %s (%s) is : %.2f", token, timeframe, sma_200)
                 return current_price, sma_50, sma_200
             else:
-                print(f"❌ Invalid SMA for {token}: sma50={sma_50}, sma200={sma_200}")
+                logger.error("Invalid SMA for %s: sma50=%s, sma200=%s", token, sma_50, sma_200)
                 return None, None, None
 
         except Exception as e:
-            print(f"❌ Error while connecting to api {token}: {e}")
+            logger.error("Error while connecting to api %s: %s", token, e)
             return None, None, None
 
 

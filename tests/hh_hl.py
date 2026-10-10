@@ -8,10 +8,10 @@ import os
 register_user(api_key=os.getenv("VNSTOCK_API_KEY", ""))
 
 # Hoặc VCI - Dữ liệu đầy đủ hơn nhưng không chạy được trên Colab
-quote = Quote(symbol='ssi', source='VCI')
+quote = Quote(symbol='vic', source='VCI')
 
 # Hoặc lấy theo khoảng thời gian cụ thể
-df = quote.history(start='2026-07-22', end='2026-09-19', interval="1d")
+df = quote.history(start='2026-07-22', end='2026-10-10', interval="1d")
 
 prices = df['close'].values
 dates = df['time'].values

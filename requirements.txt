@@ -7,6 +7,7 @@ pandas
 plotly
 yfinance
 ccxt
+pytest
 a2wsgi==1.10.10
 aiologic==0.17.1
 aiosmtplib==5.1.2

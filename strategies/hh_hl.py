@@ -1,29 +1,28 @@
-import time
-from pathlib import Path
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+"""Chiến lược uptrend: Higher-High + Higher-Low."""
+
+import logging
 
 from scipy.signal import find_peaks
-from utiils.fetch_data import FetchData
-from utiils.common import Common
+
 from config import Config
-from utiils.fetch_us_stock_data import FetchUsStockData
-from utiils.fetch_binance_data import FetchBinanceData
+from strategies.base import BaseStrategy
+from utils.fetch_binance_data import FetchBinanceData
+from utils.fetch_data import FetchData
+from utils.fetch_us_stock_data import FetchUsStockData
 
-etl_path = str(Path(__file__).resolve().parents[1])
+logger = logging.getLogger(__name__)
+
+PEAK_DISTANCE = 5
+PEAK_PROMINENCE = 1
 
 
-class HhHl:
+class HhHl(BaseStrategy):
 
     def __init__(self):
+        super().__init__(name="hh_hl")
         self.fetcher = FetchData()
         self.fetcher_us_data = FetchUsStockData()
         self.fetcher_binance_data = FetchBinanceData()
-        self.execution_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime('%Y-%m-%d')
-        range_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")) - timedelta(days=60)
-        self.execution_range_date = range_date.strftime('%Y-%m-%d')
-        # utc
-        # self.execution_date = datetime.now(ZoneInfo("UTC")).strftime('%Y-%m-%d')
 
     @staticmethod
     def hh_hl(df, list_ticker_uptrend, ticket):
@@ -33,8 +32,8 @@ class HhHl:
 
         # 2. Find all local peaks and troughs
         # Adjust distance and prominence depending on how noisy the stock is
-        peaks, _ = find_peaks(prices, distance=5, prominence=1)
-        troughs, _ = find_peaks(-prices, distance=5, prominence=1)
+        peaks, _ = find_peaks(prices, distance=PEAK_DISTANCE, prominence=PEAK_PROMINENCE)
+        troughs, _ = find_peaks(-prices, distance=PEAK_DISTANCE, prominence=PEAK_PROMINENCE)
 
         # 3. Algorithm to detect reversal points (HH and HL)
         trend_signals = []
@@ -49,79 +48,45 @@ class HhHl:
                     if prices[recent_troughs[-1]] > prices[recent_troughs[-2]]:
                         trend_signals.append(peaks[i])
 
-        print(" prices peaks : ", prices[peaks], " len : ", len(prices[peaks]))
-        print(" prices troughs : ", prices[troughs], " len : ", len(prices[troughs]))
+        logger.debug("prices peaks: %s (len %d)", prices[peaks], len(prices[peaks]))
+        logger.debug("prices troughs: %s (len %d)", prices[troughs], len(prices[troughs]))
 
         # Flag confirmed uptrend points (next peak > previous peak & next trough > previous trough)
         if trend_signals:
-            print(f"stock {ticket} entering an uptrend wave ")
+            logger.info("stock %s entering an uptrend wave", ticket)
             list_ticker_uptrend.append(ticket)
 
-        # Flag stocks where the next trough is higher than the previous one; peaks don't matter here
-        # elif len(prices[troughs]) >= 2:
-        #     count = 0
-        #     for i in range(1, len(troughs)):
-        #         if prices[troughs[i]] >= prices[troughs[i - 1]]:
-        #             count += 1
-        #     if count > 0:
-        #         print(f"stock {ticket} entering an uptrend wave ")
-        #         list_ticker_2_bottom.append(ticket)
+    def _vn_one(self, ticket, out):
+        df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D',
+                                                start_date=self.execution_range_date,
+                                                end_date=self.execution_date)
+        self.hh_hl(df, out, ticket)
+
+    def _us_one(self, ticket, out):
+        df = self.fetcher_us_data.get_data_us_stock(ticker=ticket)
+        self.hh_hl(df, out, ticket)
+
+    def _binance_one(self, token, out):
+        df = self.fetcher_binance_data.get_binance_data(token=token)
+        self.hh_hl(df, out, token)
 
     def vn_stock(self):
-        list_ticker_uptrend = []
-        data = []
-        for ticket in Config.ALL_TICKERS:
-            df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date=self.execution_range_date,
-                                                    end_date=self.execution_date)
-
-            self.hh_hl(df, list_ticker_uptrend, ticket)
-
-        if len(list_ticker_uptrend) > 0:
-            data.append({"vn_stock_hh_hl": list_ticker_uptrend})
-
-        Common.create_json_file(data if data else [{"vn_stock_hh_hl": []}], etl_path, "vn_stock_hh_hl")
+        found = self.scan_tickers(Config.ALL_TICKERS, self._vn_one)
+        self.save_signal("vn_stock_hh_hl", found)
 
     def us_stock(self):
-        list_ticker_uptrend = []
-        data = []
-
-        for ticket in Config.US_TICKERS:
-            df = self.fetcher_us_data.get_data_us_stock(ticker=ticket)
-
-            self.hh_hl(df, list_ticker_uptrend, ticket)
-
-        if len(list_ticker_uptrend) > 0:
-            data.append({"us_stock_hh_hl": list_ticker_uptrend})
-
-        Common.create_json_file(data if data else [{"us_stock_hh_hl": []}], etl_path, "us_stock_hh_hl")
+        found = self.scan_tickers(Config.US_TICKERS, self._us_one)
+        self.save_signal("us_stock_hh_hl", found)
 
     def binance_token(self):
-        list_ticker_uptrend = []
-        data = []
-        for token in Config.TOKENS:
-            df = self.fetcher_binance_data.get_binance_data(token=token)
-
-            self.hh_hl(df, list_ticker_uptrend, token)
-
-        if len(list_ticker_uptrend) > 0:
-            data.append({"binance_token_hh_hl": list_ticker_uptrend})
-
-        Common.create_json_file(data if data else [{"binance_token_hh_hl": []}], etl_path, "binance_token_hh_hl")
+        found = self.scan_tickers(Config.TOKENS, self._binance_one)
+        self.save_signal("binance_token_hh_hl", found)
 
     def main(self):
-
         if not Config.is_uptrend_off:
-            start_time = time.perf_counter()
-
-            self.vn_stock()
-            self.us_stock()
-            self.binance_token()
-
-            end_time = time.perf_counter()
-            execution_time = end_time - start_time
-            print(f'"execution_time": {execution_time:.2f}')
+            self.run_timed("hh_hl", lambda: (self.vn_stock(), self.us_stock(), self.binance_token()))
         else:
-            print("uptrend feature is off ")
+            self.log.info("uptrend feature is off")
 
 
 if __name__ == '__main__':

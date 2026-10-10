@@ -1,10 +1,14 @@
 import json
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
 
 class Common:
 
     @staticmethod
-    def create_json_file(data, etl_path, filename):
+    def create_json_file(data, etl_path, filename) -> Path:
         filename = Path(f"{etl_path}/data/{filename}.json") if not str(filename).endswith('.json') else Path(filename)
         # Nếu filename truyền vào chưa chứa thư mục, đặt dưới etl_path/data/
         if len(filename.parts) == 1:
@@ -14,6 +18,8 @@ class Common:
 
         with open(filename, "w", encoding="utf-8") as json_file:
             json.dump(data, json_file, ensure_ascii=False, indent=4)
+        logger.debug("Da ghi %s", filename)
+        return filename
 
     @staticmethod
     def get_data_from_file(file_path, list_tickers):

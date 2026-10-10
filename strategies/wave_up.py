@@ -1,152 +1,73 @@
-import time
-from pathlib import Path
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+"""Chiến lược sóng tăng (zigzag theo % biến động)."""
 
-from utiils.fetch_data import FetchData
-from utiils.common import Common
 from config import Config
-from utiils.fetch_us_stock_data import FetchUsStockData
-from utiils.fetch_binance_data import FetchBinanceData
+from strategies.base import BaseStrategy
+from utils.fetch_binance_data import FetchBinanceData
+from utils.fetch_data import FetchData
+from utils.fetch_us_stock_data import FetchUsStockData
 
-etl_path = str(Path(__file__).resolve().parents[1])
+WAVE_THRESHOLD_VN = 10
+WAVE_THRESHOLD_US = 20
+WAVE_THRESHOLD_CRYPTO = 20
 
 
-class WaveUp:
+class WaveUp(BaseStrategy):
 
     def __init__(self):
+        super().__init__(name="wave_up")
         self.fetcher = FetchData()
         self.fetcher_us_data = FetchUsStockData()
         self.fetcher_binance_data = FetchBinanceData()
-        self.execution_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime('%Y-%m-%d')
-        range_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")) - timedelta(days=60)
-        self.execution_range_date = range_date.strftime('%Y-%m-%d')
-        # utc
-        # self.execution_date = datetime.now(ZoneInfo("UTC")).strftime('%Y-%m-%d')
 
     @staticmethod
     def identify_zigzag_waves(df, threshold=20):
-        """
-        Xác định các đỉnh và đáy dựa trên phần trăm biến động.
-        """
-        prices = df['close'].values
-        n = len(prices)
-
-        # Khởi tạo danh sách các điểm xoay (Pivot Points)
-        # Cấu trúc: (index, price, type) | type: 1 cho Đỉnh, -1 cho Đáy
-        pivots = [(0, prices[0], 0)]
-
-        last_pivot_price = prices[0]
-        last_pivot_idx = 0
-        trend = 0  # 1 là đang tăng, -1 là đang giảm
-
-        for i in range(1, n):
-            current_price = prices[i]
-            price_change = (current_price - last_pivot_price) / last_pivot_price * 100
-
-            if trend == 0:
-                if price_change >= threshold:
-                    trend = 1
-                elif price_change <= -threshold:
-                    trend = -1
-
-            if trend == 1:  # Đang trong xu hướng tăng
-                if current_price > last_pivot_price:
-                    last_pivot_price = current_price
-                    last_pivot_idx = i
-                elif price_change <= -threshold:
-                    pivots.append((last_pivot_idx, last_pivot_price, 1))
-                    last_pivot_price = current_price
-                    last_pivot_idx = i
-                    trend = -1
-
-            elif trend == -1:  # Đang trong xu hướng giảm
-                if current_price < last_pivot_price:
-                    last_pivot_price = current_price
-                    last_pivot_idx = i
-                elif price_change >= threshold:
-                    pivots.append((last_pivot_idx, last_pivot_price, -1))
-                    last_pivot_price = current_price
-                    last_pivot_idx = i
-                    trend = 1
-
-        # Thêm điểm cuối cùng vào pivots
-        pivots.append((n - 1, prices[-1], 0))
-        return pivots
+        """Xác định các đỉnh và đáy dựa trên phần trăm biến động."""
+        return BaseStrategy.identify_zigzag(df, threshold)
 
     def plot_growth_waves(self, df, threshold=20):
+        """Trả về % sóng tăng lớn nhất vượt ngưỡng, None nếu không có."""
         pivots = self.identify_zigzag_waves(df, threshold)
-
-        # 3. Tính toán và đánh dấu các đoạn sóng tăng
         percentage_wave = None
-        for i in range(len(pivots) - 1):
-            idx_start, price_start, type_start = pivots[i]
-            idx_end, price_end, type_end = pivots[i + 1]
-
-            change_pct = (price_end - price_start) / price_start * 100
-
-            # Chỉ đánh dấu sóng tăng từ 20% trở lên
+        for change_pct in BaseStrategy.iter_wave_changes(pivots):
+            # Chỉ đánh dấu sóng tăng từ ngưỡng trở lên
             if change_pct >= threshold:
                 percentage_wave = change_pct
-
         return percentage_wave
 
+    def _vn_one(self, ticket, out):
+        df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D',
+                                                start_date=self.execution_range_date,
+                                                end_date=self.execution_date)
+        if self.plot_growth_waves(df, threshold=WAVE_THRESHOLD_VN):
+            out.append(ticket)
+
+    def _us_one(self, ticket, out):
+        df = self.fetcher_us_data.get_data_us_stock(ticker=ticket)
+        if self.plot_growth_waves(df, threshold=WAVE_THRESHOLD_US):
+            out.append(ticket)
+
+    def _binance_one(self, token, out):
+        df = self.fetcher_binance_data.get_binance_data(token=token)
+        if self.plot_growth_waves(df, threshold=WAVE_THRESHOLD_CRYPTO):
+            out.append(token)
+
     def vn_stock(self):
-        data = []
-        list_ticker_20_percent = []
-        for ticket in Config.ALL_TICKERS:
-            df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date=self.execution_range_date,
-                                                    end_date=self.execution_date)
-
-            percentage_wave = self.plot_growth_waves(df, threshold=10)
-            if percentage_wave:
-                list_ticker_20_percent.append(ticket)
-
-        data.append({"vn_stock_wave_up": list_ticker_20_percent})
-        if len(data) > 0:
-            Common.create_json_file(data, etl_path, "vn_stock_wave_up")
+        found = self.scan_tickers(Config.ALL_TICKERS, self._vn_one)
+        self.save_signal("vn_stock_wave_up", found)
 
     def binance_token(self):
-        data = []
-        list_ticker_20_percent = []
-        for token in Config.TOKENS:
-            df = self.fetcher_binance_data.get_binance_data(token=token)
-
-            percentage_wave = self.plot_growth_waves(df, threshold=20)
-            if percentage_wave:
-                list_ticker_20_percent.append(token)
-
-        data.append({"binance_token_wave_up": list_ticker_20_percent})
-        if len(data) > 0:
-            Common.create_json_file(data, etl_path, "binance_token_wave_up")
+        found = self.scan_tickers(Config.TOKENS, self._binance_one)
+        self.save_signal("binance_token_wave_up", found)
 
     def us_stock(self):
-        data = []
-        list_ticker_20_percent = []
-        for ticket in Config.US_TICKERS:
-            df = self.fetcher_us_data.get_data_us_stock(ticker=ticket)
-
-            percentage_wave = self.plot_growth_waves(df, threshold=20)
-            if percentage_wave:
-                list_ticker_20_percent.append(ticket)
-
-        data.append({"us_stock_wave_up": list_ticker_20_percent})
-        if len(data) > 0:
-            Common.create_json_file(data, etl_path, "us_stock_wave_up")
+        found = self.scan_tickers(Config.US_TICKERS, self._us_one)
+        self.save_signal("us_stock_wave_up", found)
 
     def main(self):
         if not Config.is_uptrend_off:
-            start_time = time.perf_counter()
-
-            self.vn_stock()
-            self.binance_token()
-            self.us_stock()
-
-            end_time = time.perf_counter()
-            execution_time = end_time - start_time
-            print(f'"execution_time": {execution_time:.2f}')
+            self.run_timed("wave_up", lambda: (self.vn_stock(), self.binance_token(), self.us_stock()))
         else:
-            print("uptrend feature is off ")
+            self.log.info("uptrend feature is off")
 
 
 if __name__ == '__main__':

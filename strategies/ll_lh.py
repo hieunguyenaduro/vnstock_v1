@@ -1,32 +1,32 @@
-import time
-from pathlib import Path
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+"""Chiến lược downtrend: Lower-Low + Lower-High."""
+
+import logging
 
 from scipy.signal import find_peaks
-from utiils.fetch_data import FetchData
+
 from config import Config
-from utiils.common import Common
-from utiils.fetch_us_stock_data import FetchUsStockData
-from utiils.fetch_binance_data import FetchBinanceData
+from strategies.base import BaseStrategy
+from utils.fetch_binance_data import FetchBinanceData
+from utils.fetch_data import FetchData
+from utils.fetch_us_stock_data import FetchUsStockData
 
-etl_path = str(Path(__file__).resolve().parents[1])
+logger = logging.getLogger(__name__)
+
+PEAK_DISTANCE = 5
+PEAK_PROMINENCE = 1
 
 
-class LlLh:
+class LlLh(BaseStrategy):
 
     def __init__(self):
+        super().__init__(name="ll_lh")
         self.fetcher = FetchData()
         self.fetcher_us_data = FetchUsStockData()
         self.fetcher_binance_data = FetchBinanceData()
-        self.execution_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime('%Y-%m-%d')
-        range_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")) - timedelta(days=60)
-        self.execution_range_date = range_date.strftime('%Y-%m-%d')
-        # utc
-        # self.execution_date = datetime.now(ZoneInfo("UTC")).strftime('%Y-%m-%d')
 
     @staticmethod
-    def ll_lh(df, ticket, list_ticker_downtrend):
+    def ll_lh(df, list_ticker_downtrend, ticket):
+        """Thứ tự tham số thống nhất với HhHl.hh_hl(df, tickers, ticket)."""
         if df is None or getattr(df, "empty", True) or "close" not in df.columns:
             return
         prices = df['close'].values
@@ -34,8 +34,8 @@ class LlLh:
         # 2. Tìm Đỉnh (Peaks) và Đáy (Troughs)
         # distance=5: Khoảng cách tối thiểu giữa 2 đỉnh/đáy là 5 phiên
         # prominence=1: Độ cao chênh lệch tối thiểu để coi là 1 đỉnh/đáy rõ nét
-        peaks, _ = find_peaks(prices, distance=5, prominence=1)
-        troughs, _ = find_peaks(-prices, distance=5, prominence=1)
+        peaks, _ = find_peaks(prices, distance=PEAK_DISTANCE, prominence=PEAK_PROMINENCE)
+        troughs, _ = find_peaks(-prices, distance=PEAK_DISTANCE, prominence=PEAK_PROMINENCE)
 
         # 3. Thuật toán xác định Điểm Đảo Chiều Giảm (LH + LL)
         reversal_signals = []
@@ -57,79 +57,45 @@ class LlLh:
                         # Đây là điểm xác nhận đảo chiều xu hướng sang giảm
                         reversal_signals.append(current_trough_idx)
 
-        print(" prices peaks : ", prices[peaks], " len : ", len(prices[peaks]))
-        print(" prices troughs : ", prices[troughs], " len : ", len(prices[troughs]))
+        logger.debug("prices peaks: %s (len %d)", prices[peaks], len(prices[peaks]))
+        logger.debug("prices troughs: %s (len %d)", prices[troughs], len(prices[troughs]))
 
-        # Flag confirmed uptrend points (next peak > previous peak & next trough > previous trough)
         # Đánh dấu điểm ĐẢO CHIỀU (Xác nhận cấu trúc LH + LL)
         if reversal_signals:
-            print(f"stock {ticket} entering an downtrend wave ")
+            logger.info("stock %s entering a downtrend wave", ticket)
             list_ticker_downtrend.append(ticket)
 
-        # Flag stocks where the next trough is higher than the previous one; peaks don't matter here
-        # elif len(prices[peaks]) >= 2:
-        #     count = 0
-        #     for i in range(1, len(peaks)):
-        #         if prices[peaks[i]] <= prices[peaks[i - 1]]:
-        #             count += 1
-        #     if count > 0:
-        #         print(f"stock {ticket} entering an downtrend wave ")
-        #         list_ticker_2_peak.append(ticket)
+    def _vn_one(self, ticket, out):
+        df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D',
+                                                start_date=self.execution_range_date,
+                                                end_date=self.execution_date)
+        self.ll_lh(df, out, ticket)
+
+    def _us_one(self, ticket, out):
+        df = self.fetcher_us_data.get_data_us_stock(ticker=ticket)
+        self.ll_lh(df, out, ticket)
+
+    def _binance_one(self, token, out):
+        df = self.fetcher_binance_data.get_binance_data(token=token)
+        self.ll_lh(df, out, token)
 
     def vn_stock(self):
-        list_ticker_downtrend = []
-        data = []
-        for ticket in Config.ALL_TICKERS:
-            df = self.fetcher.fetch_data_for_ticker(ticker=ticket, timeframe='1D', start_date=self.execution_range_date,
-                                                    end_date=self.execution_date)
-
-            self.ll_lh(df, ticket, list_ticker_downtrend)
-
-        if len(list_ticker_downtrend) > 0:
-            data.append({"vn_stock_ll_hh": list_ticker_downtrend})
-
-        Common.create_json_file(data if data else [{"vn_stock_ll_hh": []}], etl_path, "vn_stock_ll_hh")
+        found = self.scan_tickers(Config.ALL_TICKERS, self._vn_one)
+        self.save_signal("vn_stock_ll_hh", found)
 
     def us_stock(self):
-        list_ticker_downtrend = []
-        data = []
-
-        for ticket in Config.US_TICKERS:
-            df = self.fetcher_us_data.get_data_us_stock(ticker=ticket)
-
-            self.ll_lh(df, ticket, list_ticker_downtrend)
-
-        if len(list_ticker_downtrend) > 0:
-            data.append({"us_stock_ll_hh": list_ticker_downtrend})
-
-        Common.create_json_file(data if data else [{"us_stock_ll_hh": []}], etl_path, "us_stock_ll_hh")
+        found = self.scan_tickers(Config.US_TICKERS, self._us_one)
+        self.save_signal("us_stock_ll_hh", found)
 
     def binance_token(self):
-        list_ticker_downtrend = []
-        data = []
-        for token in Config.TOKENS:
-            df = self.fetcher_binance_data.get_binance_data(token=token)
-
-            self.ll_lh(df, token, list_ticker_downtrend)
-
-        if len(list_ticker_downtrend) > 0:
-            data.append({"binance_token_ll_hh": list_ticker_downtrend})
-
-        Common.create_json_file(data if data else [{"binance_token_ll_hh": []}], etl_path, "binance_token_ll_hh")
+        found = self.scan_tickers(Config.TOKENS, self._binance_one)
+        self.save_signal("binance_token_ll_hh", found)
 
     def main(self):
         if not Config.is_downtrend_off:
-            start_time = time.perf_counter()
-
-            self.vn_stock()
-            self.us_stock()
-            self.binance_token()
-
-            end_time = time.perf_counter()
-            execution_time = end_time - start_time
-            print(f'"execution_time": {execution_time:.2f}')
+            self.run_timed("ll_lh", lambda: (self.vn_stock(), self.us_stock(), self.binance_token()))
         else:
-            print("downtrend feature is off ")
+            self.log.info("downtrend feature is off")
 
 
 if __name__ == '__main__':

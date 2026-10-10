@@ -1,58 +1,49 @@
-import time
-from pathlib import Path
+"""Lọc RSI khung 1h cho các token Binance đã qua vòng quét daily."""
 
-from utiils.common import Common
-from utiils.fetch_us_stock_data import FetchUsStockData
-from utiils.fetch_binance_data import FetchBinanceData
+from strategies.base import BaseStrategy
+from strategies.rsi_oversold import RSI_OVERBOUGHT, RSI_OVERSOLD, latest_rsi_from_df
+from utils.common import Common
+from utils.fetch_binance_data import FetchBinanceData
+from utils.fetch_us_stock_data import FetchUsStockData
 
-etl_path = str(Path(__file__).resolve().parents[1])
+BINANCE_SIGNAL_FILES = ["binance_token_wave_down", "binance_token_wave_up",
+                        "binance_token_hh_hl", "binance_token_ll_hh",
+                        "binance_token_sma", "binance_token_polarity"]
 
 
-class BinanceToken091h:
+class BinanceToken091h(BaseStrategy):
 
     def __init__(self, interval):
+        super().__init__(name="binance_token_1h")
         self.fetcher_us_data = FetchUsStockData()
         self.fetcher_binance_data = FetchBinanceData()
         self.interval = interval
 
     def binance_token(self, list_tokens, file_name):
-        list_token_rsi_oversold = []
-        list_token_rsi_overbought = []
+        oversold, overbought = [], []
 
-        for token in list_tokens:
-            df = self.fetcher_binance_data.get_binance_data(token=token, timeframe=self.interval)
-            if df is None or df.empty or "RSI" not in df.columns:
-                continue
-            rsi_series = df["RSI"].dropna()
-            if rsi_series.empty:
-                continue
-            latest_rsi = float(rsi_series.iloc[-1])
-            if latest_rsi is not None and latest_rsi <= 33:
-                list_token_rsi_oversold.append(token)
-            if latest_rsi is not None and latest_rsi >= 67:
-                list_token_rsi_overbought.append(token)
+        for token in list_tokens or []:
+            df = self.safe_call(self.fetcher_binance_data.get_binance_data, token,
+                                timeframe=self.interval)
+            rsi = latest_rsi_from_df(df)
+            if rsi is not None and rsi <= RSI_OVERSOLD:
+                oversold.append(token)
+            if rsi is not None and rsi >= RSI_OVERBOUGHT:
+                overbought.append(token)
 
-        if list_token_rsi_oversold:
-            data = [{"binance_token_rsi_oversold": list_token_rsi_oversold}]
-            Common.create_json_file(data, etl_path, f"{file_name}_rsi_oversold")
-        if list_token_rsi_overbought:
-            data = [{"binance_token_rsi_overbought": list_token_rsi_overbought}]
-            Common.create_json_file(data, etl_path, f"{file_name}_rsi_overbought")
+        self.save_signal("binance_token_rsi_oversold", oversold,
+                         filename=f"{file_name}_rsi_oversold")
+        self.save_signal("binance_token_rsi_overbought", overbought,
+                         filename=f"{file_name}_rsi_overbought")
 
     def main(self):
-        start_time = time.perf_counter()
+        def _run():
+            for file_name in BINANCE_SIGNAL_FILES:
+                tokens = Common.get_data_from_file(file_path=f'data/{file_name}.json',
+                                                   list_tickers=file_name)
+                self.binance_token(tokens, file_name)
 
-        list_binance_token = ["binance_token_wave_down", "binance_token_wave_up", "binance_token_hh_hl",
-                              "binance_token_ll_hh", "binance_token_sma",
-                              "binance_token_polarity"]
-
-        for file_name in list_binance_token:
-            list_tokens = Common.get_data_from_file(file_path=f'data/{file_name}.json', list_tickers=file_name)
-            self.binance_token(list_tokens, file_name)
-
-        end_time = time.perf_counter()
-        execution_time = end_time - start_time
-        print(f'"execution_time": {execution_time:.2f}')
+        self.run_timed("binance_token_1h", _run)
 
 
 if __name__ == '__main__':
