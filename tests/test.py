@@ -1,8 +1,9 @@
+import os
 import plotly.graph_objects as go
 from vnstock import *
 from vnstock import register_user
 
-register_user(api_key='vnstock_366108191e0a3190950b24d2a04fe157')
+register_user(api_key=os.getenv("VNSTOCK_API_KEY", ""))
 
 # Sử dụng nguồn TCBS thay vì VCI để tránh lỗi 503
 try:

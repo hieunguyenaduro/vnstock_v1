@@ -51,7 +51,10 @@ class SMA:
         list_ticker_094h = []
 
         for ticker in Config.US_TICKERS:
-            current_stock_price, sma50, sma200 = self.fetcher_us_data.get_stock_data_from_timeseries(ticker=ticker)
+            unpacked = self.fetcher_us_data.get_stock_data_from_timeseries(ticker=ticker)
+            if unpacked is None:
+                continue
+            current_stock_price, sma50, sma200 = unpacked
 
             rsi_4h = self.fetcher_us_data.get_us_stock_rsi(ticker=ticker, interval=self.interval)
 
@@ -72,15 +75,9 @@ class SMA:
                 if current_stock_price >= sma200 and rsi_4h <= 32:
                     list_ticker_094h.append(ticker)
 
-        if list_ticker_sma:
-            data = [{"us_stock_sma": list_ticker_sma}]
-            Common.create_json_file(data, etl_path, "us_stock_sma")
-        if list_ticker_polarity:
-            data = [{"us_stock_polarity": list_ticker_polarity}]
-            Common.create_json_file(data, etl_path, "us_stock_polarity")
-        if list_ticker_094h:
-            data = [{"us_stock_094h": list_ticker_094h}]
-            Common.create_json_file(data, etl_path, "us_stock_094h")
+        Common.create_json_file([{"us_stock_sma": list_ticker_sma}], etl_path, "us_stock_sma")
+        Common.create_json_file([{"us_stock_polarity": list_ticker_polarity}], etl_path, "us_stock_polarity")
+        Common.create_json_file([{"us_stock_094h": list_ticker_094h}], etl_path, "us_stock_094h")
 
     def binance_token(self):
         list_token_sma = []
@@ -88,9 +85,17 @@ class SMA:
         list_token_094h=[]
 
         for token in Config.TOKENS:
-            current_price, sma50, sma200 = self.fetcher_binance_data.get_binance_from_timeseries(token=token)
+            unpacked = self.fetcher_binance_data.get_binance_from_timeseries(token=token)
+            if unpacked is None:
+                continue
+            current_price, sma50, sma200 = unpacked
 
-            rsi_4h = self.fetcher_binance_data.get_binance_data(token=token, timeframe=self.interval)
+            rsi_df = self.fetcher_binance_data.get_binance_data(token=token, timeframe=self.interval)
+            rsi_4h = None
+            if rsi_df is not None and not rsi_df.empty and "RSI" in rsi_df.columns:
+                rsi_series = rsi_df["RSI"].dropna()
+                if not rsi_series.empty:
+                    rsi_4h = float(rsi_series.iloc[-1])
 
             if None not in (current_price, sma50, sma200):
                 if sma200 >= current_price >= sma50:
@@ -108,15 +113,9 @@ class SMA:
                 if current_price >= sma200 and rsi_4h <= 32:
                     list_token_094h.append(token)
 
-        if list_token_sma:
-            data = [{"binance_token_sma": list_token_sma}]
-            Common.create_json_file(data, etl_path, "binance_token_sma")
-        if list_token_polarity:
-            data = [{"binance_token_polarity": list_token_polarity}]
-            Common.create_json_file(data, etl_path, "binance_token_polarity")
-        if list_token_094h:
-            data = [{"binance_token_094h": list_token_094h}]
-            Common.create_json_file(data, etl_path, "binance_token_094h")
+        Common.create_json_file([{"binance_token_sma": list_token_sma}], etl_path, "binance_token_sma")
+        Common.create_json_file([{"binance_token_polarity": list_token_polarity}], etl_path, "binance_token_polarity")
+        Common.create_json_file([{"binance_token_094h": list_token_094h}], etl_path, "binance_token_094h")
 
     def main(self):
         start_time = time.perf_counter()
@@ -134,6 +133,5 @@ if __name__ == '__main__':
 
 
 def python_operator_run(**kwargs):
-    global airflow_context
-    airflow_context = kwargs
-    SMA(interval=airflow_context).main()
+    interval = kwargs.get("interval") or kwargs.get("op_kwargs", {}).get("interval")
+    SMA(interval=interval if interval else "1d").main()

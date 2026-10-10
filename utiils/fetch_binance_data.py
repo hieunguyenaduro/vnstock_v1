@@ -58,9 +58,13 @@ class FetchBinanceData:
 
             ohlcv = self.exchange.fetch_ohlcv(token, timeframe, limit=200)
 
-            close_prices = [candle[4] for candle in ohlcv]
+            if not ohlcv or len(ohlcv) < 200:
+                print(f"⚠️ not enough candles for {token}: got {len(ohlcv) if ohlcv else 0}")
+                return None, None, None
 
-            current_price = float(close_prices[0]["close"])
+            close_prices = [float(candle[4]) for candle in ohlcv]
+
+            current_price = float(close_prices[-1])
 
             # Calculate SMAs from the most recent closing prices
             sma_50 = sum(close_prices[-50:]) / 50
@@ -70,18 +74,17 @@ class FetchBinanceData:
             print(f"SMA 200: ${sma_200:,.2f}")
 
             # check values from api's response
-            if sma_50 > 0:
+            if sma_50 > 0 and sma_200 > 0:
                 print(f"current sma50 of {token} ({timeframe}) is : {sma_50:.2f}")
                 print(f"current sma200 of {token} ({timeframe}) is : {sma_200:.2f}")
                 return current_price, sma_50, sma_200
             else:
-                error_msg = data.get("message", "not found")
-                print(f"❌ Error while getting data {token}: {error_msg}")
-                return None
+                print(f"❌ Invalid SMA for {token}: sma50={sma_50}, sma200={sma_200}")
+                return None, None, None
 
         except Exception as e:
             print(f"❌ Error while connecting to api {token}: {e}")
-            return None
+            return None, None, None
 
 
 if __name__ == "__main__":

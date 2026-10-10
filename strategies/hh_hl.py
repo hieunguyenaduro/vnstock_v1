@@ -27,6 +27,8 @@ class HhHl:
 
     @staticmethod
     def hh_hl(df, list_ticker_uptrend, ticket):
+        if df is None or getattr(df, "empty", True) or "close" not in df.columns:
+            return
         prices = df['close'].values
 
         # 2. Find all local peaks and troughs
@@ -75,10 +77,9 @@ class HhHl:
             self.hh_hl(df, list_ticker_uptrend, ticket)
 
         if len(list_ticker_uptrend) > 0:
-            data.append({"stock_hh_hl": list_ticker_uptrend})
+            data.append({"vn_stock_hh_hl": list_ticker_uptrend})
 
-        if len(data) > 0:
-            Common.create_json_file(data, etl_path, "vn-stock_hh_hl")
+        Common.create_json_file(data if data else [{"vn_stock_hh_hl": []}], etl_path, "vn_stock_hh_hl")
 
     def us_stock(self):
         list_ticker_uptrend = []
@@ -90,10 +91,9 @@ class HhHl:
             self.hh_hl(df, list_ticker_uptrend, ticket)
 
         if len(list_ticker_uptrend) > 0:
-            data.append({"hh_hl_us": list_ticker_uptrend})
+            data.append({"us_stock_hh_hl": list_ticker_uptrend})
 
-        if len(data) > 0:
-            Common.create_json_file(data, etl_path, "us_stock_hh_hl")
+        Common.create_json_file(data if data else [{"us_stock_hh_hl": []}], etl_path, "us_stock_hh_hl")
 
     def binance_token(self):
         list_ticker_uptrend = []
@@ -104,10 +104,9 @@ class HhHl:
             self.hh_hl(df, list_ticker_uptrend, token)
 
         if len(list_ticker_uptrend) > 0:
-            data.append({"hh_hl_binance_token": list_ticker_uptrend})
+            data.append({"binance_token_hh_hl": list_ticker_uptrend})
 
-        if len(data) > 0:
-            Common.create_json_file(data, etl_path, "binance_token_hh_hl")
+        Common.create_json_file(data if data else [{"binance_token_hh_hl": []}], etl_path, "binance_token_hh_hl")
 
     def main(self):
 

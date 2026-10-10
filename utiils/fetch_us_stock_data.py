@@ -8,7 +8,10 @@ import pandas as pd
 class FetchUsStockData:
 
     def __init__(self):
-        self.api_key = config.Config.API_KEY_twelvedata
+        # Ưu tiên tên mới TWELVEDATA_API_KEY, fallback alias cũ để tương thích
+        self.api_key = getattr(config.Config, "TWELVEDATA_API_KEY", "") or getattr(
+            config.Config, "API_KEY_twelvedata", ""
+        )
         self.base_url_rsi = "https://api.twelvedata.com/rsi"
         self.base_url_sma = "https://api.twelvedata.com/sma"
         self.base_url_time_series = "https://api.twelvedata.com/time_series"
@@ -129,11 +132,15 @@ class FetchUsStockData:
             }
             df.rename(columns=rename_dict, inplace=True)
 
-            # 3. remove timezones
+            # 3. remove timezones (chỉ khi cột thực sự có tz)
             if "timestamp" in df.columns and pd.api.types.is_datetime64_any_dtype(
                     df["timestamp"]
             ):
-                df["timestamp"] = df["timestamp"].dt.tz_localize(None)
+                try:
+                    if getattr(df["timestamp"].dt, "tz", None) is not None:
+                        df["timestamp"] = df["timestamp"].dt.tz_localize(None)
+                except (TypeError, AttributeError):
+                    pass
 
             keep_cols = [
                 col
@@ -151,12 +158,12 @@ class FetchUsStockData:
 
     @staticmethod
     def get_current_stock_price(ticker):
-        ticker = yf.Ticker(ticker)
+        stock = yf.Ticker(ticker)
 
-        fast_info = ticker.fast_info
+        fast_info = stock.fast_info
         current_price = fast_info['lastPrice']
 
-        print(f"Ticker: {symbol.upper()}")
+        print(f"Ticker: {ticker.upper()}")
         print(f"Current Price: ${current_price:.2f}")
 
         return current_price

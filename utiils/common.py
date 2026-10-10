@@ -5,8 +5,10 @@ class Common:
 
     @staticmethod
     def create_json_file(data, etl_path, filename):
-        if not filename.endswith('.json'):
-            filename = Path(f"{etl_path}/data/{filename}.json")
+        filename = Path(f"{etl_path}/data/{filename}.json") if not str(filename).endswith('.json') else Path(filename)
+        # Nếu filename truyền vào chưa chứa thư mục, đặt dưới etl_path/data/
+        if len(filename.parts) == 1:
+            filename = Path(f"{etl_path}/data/{filename.name}")
 
         filename.parent.mkdir(parents=True, exist_ok=True)
 
@@ -15,7 +17,18 @@ class Common:
 
     @staticmethod
     def get_data_from_file(file_path, list_tickers):
-        with open(file_path, "r", encoding="utf-8") as file:
-            data = json.load(file)
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            return []
+        except (json.JSONDecodeError, OSError):
+            return []
 
-        return data[0][list_tickers]
+        if not data or not isinstance(data, list):
+            return []
+        first = data[0]
+        if not isinstance(first, dict):
+            return []
+        value = first.get(list_tickers, [])
+        return value if isinstance(value, list) else []

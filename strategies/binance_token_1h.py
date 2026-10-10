@@ -21,8 +21,12 @@ class BinanceToken091h:
 
         for token in list_tokens:
             df = self.fetcher_binance_data.get_binance_data(token=token, timeframe=self.interval)
-            latest_rsi = df[['timestamp', 'close', 'RSI']].tail()
-            latest_rsi = latest_rsi.iloc[4]["RSI"]
+            if df is None or df.empty or "RSI" not in df.columns:
+                continue
+            rsi_series = df["RSI"].dropna()
+            if rsi_series.empty:
+                continue
+            latest_rsi = float(rsi_series.iloc[-1])
             if latest_rsi is not None and latest_rsi <= 33:
                 list_token_rsi_oversold.append(token)
             if latest_rsi is not None and latest_rsi >= 67:

@@ -1,6 +1,7 @@
 import requests
 import logging
 import time
+import os
 
 # Thiết lập logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -14,7 +15,7 @@ TICKERS = [
 ]
 RSI_PERIOD = 14
 RSI_OVERSOLD_THRESHOLD = 33
-API_KEY = "1652ed6172c64a948342413ca45a8ca3"
+API_KEY = os.getenv("TWELVEDATA_API_KEY", "")
 
 
 def get_us_stock_rsi(symbol, interval):

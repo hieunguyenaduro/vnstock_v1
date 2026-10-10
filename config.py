@@ -1,5 +1,12 @@
 import os
 
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass
+
 
 class Config:
     """
@@ -47,10 +54,13 @@ class Config:
     OUTPUT_DIR = "data/output"
     RAW_DIR = "data/raw"
 
-    # API Configuration (Safe fallback method)
-    # Corrected indentation, capitalization, and added environment variable support
-    API_KEY = os.getenv("VNSTOCK_API_KEY", "vnstock_366108191e0a3190950b24d2a04fe157")
-    API_KEY_twelvedata = os.getenv("twelvedata", "1652ed6172c64a948342413ca45a8ca3")
+    # API Configuration - đọc từ biến môi trường, KHÔNG hardcode fallback.
+    # Tạo file .env từ .env.example và điền key của bạn.
+    # Xem .env.example để biết danh sách biến cần thiết.
+    API_KEY = os.getenv("VNSTOCK_API_KEY", "")
+    TWELVEDATA_API_KEY = os.getenv("TWELVEDATA_API_KEY", "")
+    # Alias tương thích ngược (deprecated, sẽ xóa): dùng TWELVEDATA_API_KEY
+    API_KEY_twelvedata = TWELVEDATA_API_KEY
 
     # off feature downtrend
     is_downtrend_off = True

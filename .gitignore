@@ -10,6 +10,7 @@ serverless.yml
 .scannerwork
 .vscode
 *.env
+.env
 /lambda/etl/lambda_adp_ms_team_bot/deployment/temp/
 .env.uat
 .env.dev

@@ -11,8 +11,11 @@
             """
 from vnstock import *
 from vnstock import register_user
+from config import Config
 
-register_user(api_key='vnstock_366108191e0a3190950b24d2a04fe157')
+if not Config.API_KEY:
+    raise RuntimeError("Thiếu VNSTOCK_API_KEY. Tạo file .env từ .env.example và điền key.")
+register_user(api_key=Config.API_KEY)
 # Khởi tạo đối tượng với mã cổ phiếu cần tra cứu (ví dụ: VNM, HPG)
 
 

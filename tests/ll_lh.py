@@ -2,8 +2,9 @@ from vnstock import *
 from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
 from vnstock import register_user
+import os
 
-register_user(api_key='vnstock_366108191e0a3190950b24d2a04fe157')
+register_user(api_key=os.getenv("VNSTOCK_API_KEY", ""))
 
 # Hoặc VCI - Dữ liệu đầy đủ hơn nhưng không chạy được trên Colab
 quote = Quote(symbol='vnd', source='VCI')

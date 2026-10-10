@@ -1,10 +1,11 @@
+import os
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from vnstock import *
 
-# Đăng ký API (Giữ nguyên của bạn)
-register_user(api_key='vnstock_366108191e0a3190950b24d2a04fe157')
+# Đăng ký API (đọc từ biến môi trường VNSTOCK_API_KEY)
+register_user(api_key=os.getenv("VNSTOCK_API_KEY", ""))
 
 # Lấy dữ liệu
 quote = Quote(symbol='ssi', source='VCI')

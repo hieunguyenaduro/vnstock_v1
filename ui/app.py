@@ -29,11 +29,17 @@ def load_signals():
 def trigger_pipeline():
     try:
         r = requests.post(
-            f"{AIRFLOW_URL}/dags/round1_screener/dagRuns",
+            f"{AIRFLOW_URL}/dags/general_strategies/dagRuns",
             json={"conf": {}},
             auth=AIRFLOW_AUTH,
+            timeout=10,
         )
-        return f"✅ Đã trigger pipeline — Run ID: {r.json().get('dag_run_id','')}"
+        r.raise_for_status()
+        try:
+            run_id = r.json().get('dag_run_id', '')
+        except ValueError:
+            run_id = ''
+        return f"✅ Đã trigger pipeline — Run ID: {run_id}"
     except Exception as e:
         return f"❌ Lỗi trigger: {e}"
 

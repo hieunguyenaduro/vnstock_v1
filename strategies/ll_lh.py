@@ -27,6 +27,8 @@ class LlLh:
 
     @staticmethod
     def ll_lh(df, ticket, list_ticker_downtrend):
+        if df is None or getattr(df, "empty", True) or "close" not in df.columns:
+            return
         prices = df['close'].values
 
         # 2. Tìm Đỉnh (Peaks) và Đáy (Troughs)
@@ -86,8 +88,7 @@ class LlLh:
         if len(list_ticker_downtrend) > 0:
             data.append({"vn_stock_ll_hh": list_ticker_downtrend})
 
-        if len(data) > 0:
-            Common.create_json_file(data, etl_path, "vn_stock_ll_hh")
+        Common.create_json_file(data if data else [{"vn_stock_ll_hh": []}], etl_path, "vn_stock_ll_hh")
 
     def us_stock(self):
         list_ticker_downtrend = []
@@ -101,8 +102,7 @@ class LlLh:
         if len(list_ticker_downtrend) > 0:
             data.append({"us_stock_ll_hh": list_ticker_downtrend})
 
-        if len(data) > 0:
-            Common.create_json_file(data, etl_path, "us_stock_ll_hh")
+        Common.create_json_file(data if data else [{"us_stock_ll_hh": []}], etl_path, "us_stock_ll_hh")
 
     def binance_token(self):
         list_ticker_downtrend = []
@@ -115,8 +115,7 @@ class LlLh:
         if len(list_ticker_downtrend) > 0:
             data.append({"binance_token_ll_hh": list_ticker_downtrend})
 
-        if len(data) > 0:
-            Common.create_json_file(data, etl_path, "binance_token_ll_hh")
+        Common.create_json_file(data if data else [{"binance_token_ll_hh": []}], etl_path, "binance_token_ll_hh")
 
     def main(self):
         if not Config.is_downtrend_off:

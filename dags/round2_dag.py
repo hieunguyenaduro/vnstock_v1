@@ -24,15 +24,15 @@ with DAG(
 ) as dag:
 
     t1 = PythonOperator(
-        task_id="RSI_Oversold",
+        task_id="BINANCE_RSI_1H",
         python_callable=binance_token_1h.python_operator_run,
         op_kwargs={
             "interval": "1h"
         },
-    ),
+    )
 
     t2 = PythonOperator(
-        task_id="RSI_Oversold",
+        task_id="US_STOCK_RSI_1H",
         python_callable=us_stock_1h.python_operator_run,
         op_kwargs={
             "interval": "1h"
